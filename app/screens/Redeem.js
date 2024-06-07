@@ -6,6 +6,8 @@ import { FlatList } from 'react-native-gesture-handler'
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 
 import NetInfo from '@react-native-community/netinfo';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const API_URL = "https://golangapi-j5iu.onrender.com/api/member/mobile/voucher/tukar?id_member=7B0792985D584A5C9BDA85469662C58E";
 
@@ -28,6 +30,21 @@ const Redeem = ({ navigation }) => {
     }, []);
 
     useEffect(() => {
+        try {
+            const idMember = AsyncStorage.getItem('idMember');
+            axios.get(`https://golangapi-j5iu.onrender.com/api/member/mobile/voucher/tukar?id_member=${idMember}`).then((res) => {
+                setData(res.data.voucherData);
+                setIsLoading(false)
+            }).catch((error) => {
+                console.log(error)
+            })
+        } catch (error) {
+            console.log(error);
+        }
+    }, []);
+
+    useEffect(() => {
+        axios.get(API_URL)
         fetch(API_URL)
             .then(response => response.json())
             .then(data => {

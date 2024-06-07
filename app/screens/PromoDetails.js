@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { Image } from 'expo-image';
 import React, { useState, useEffect } from 'react';
@@ -8,17 +9,18 @@ const PromoDetails = ({ route }) => {
     const [itemDetail, setItemDetail] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    useEffect(() => {
-        axios.get(`https://golangapi-j5iu.onrender.com/api/member/mobile/promo/detail?id_member=C45E75694BE24A2D8C0F2D91A0237B9A&id_promo=${itemId}`).then((res) => {
+    const promoDetail = async () => {
+        const idMember = await AsyncStorage.getItem("idMember");
+        axios.get(`https://golangapi-j5iu.onrender.com/api/member/mobile/promo/detail?id_member=${idMember}&id_promo=${itemId}`).then((res) => {
             setItemDetail(res.data.promoData)
             setIsLoading(false);
         }).catch((error) => {
-            return (
-                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                    <Text>{error.message}</Text>
-                </View>
-            )
+            console.error(error);
         })
+    }
+
+    useEffect(() => {
+        promoDetail();
     }, [itemId]);
 
     if (isLoading) {
@@ -29,10 +31,12 @@ const PromoDetails = ({ route }) => {
         );
     }
 
+    console.log(itemDetail);
+
     return (
         <View style={{ flex: 1, margin: 20 }}>
             <Image
-                source={`https://web.amscorp.id:3060/imagestorage/${itemDetail.imageUrl}`}
+                source={`https://web.amscorp.id:3060/imagestorage/promo/${itemDetail.imageUrl}`}
                 style={styles.promo}
             />
             <View style={{ marginVertical: 20 }}>

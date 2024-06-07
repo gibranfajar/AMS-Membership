@@ -15,9 +15,7 @@ const ValidasiForm = ({ navigation }) => {
         setData({ ...data, [key]: value });
     };
 
-    // untuk menjalankan tombol validasi
     const handleValidation = async () => {
-
         // cek apakah inputan terisi atau tidak
         if (!data.userAccount.trim()) {
             ToastAndroid.show(
@@ -37,8 +35,49 @@ const ValidasiForm = ({ navigation }) => {
 
             // mengecek response code dari API
             if (response.data.responseCode == "2002500") {
+                // Menghasilkan angka acak 6 digit
+                const randomNumber = Math.floor(Math.random() * 900000) + 100000;
+
+                await AsyncStorage.setItem('otp', randomNumber.toString());
+
+                // kirim OTP melalui API Qiscus
+                const sendOTP = await axios.post('https://omnichannel.qiscus.com/whatsapp/v1/dmvzl-wfbfx3bo5bbzrj1/3384/messages/', {
+                    to: data.userAccount, // gunakan nomor telepon dari data
+                    type: "template",
+                    template: {
+                        namespace: "7a2ceabe_e950_4283_82ac_5909ac117bf6",
+                        name: "otpmember_1",
+                        language: {
+                            policy: "deterministic",
+                            code: "id"
+                        },
+                        components: [
+                            {
+                                type: "body",
+                                parameters: [
+                                    { type: "text", text: randomNumber.toString() }
+                                ]
+                            },
+                            {
+                                type: "button",
+                                sub_type: "url",
+                                index: 0,
+                                parameters: [
+                                    { type: "text", text: randomNumber.toString() }
+                                ]
+                            }
+                        ]
+                    }
+                }, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Qiscus-App-Id': 'dmvzl-wfbfx3bo5bbzrj1',
+                        'Qiscus-Secret-Key': '27a6859bc8065575a3a135408e262e6e'
+                    }
+                });
+
                 // menyimpan idMember ke local storage
-                AsyncStorage.setItem('idMember', response.data.loginData.idMember);
+                await AsyncStorage.setItem('idMember', response.data.loginData.idMember);
 
                 // alert dengan toast android
                 ToastAndroid.show(
@@ -46,19 +85,19 @@ const ValidasiForm = ({ navigation }) => {
                     ToastAndroid.SHORT
                 );
 
-                // navigasi ke halaman Home
-                navigation.navigate("Home");
+                // navigasi ke halaman Input OTP
+                navigation.navigate("InputOTP", { nohandphone: data.userAccount });
             } else {
                 // alert dengan toast android
                 ToastAndroid.show(
-                    "Validasi Gagal!",
+                    "No Handphone Tidak Terdaftar!",
                     ToastAndroid.SHORT
                 );
             }
         } catch (error) {
             console.log(error);
         }
-    }
+    };
 
     return (
         <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
@@ -85,10 +124,11 @@ const ValidasiForm = ({ navigation }) => {
                     </Text>
 
                     <View style={styles.form}>
-                        <Text>Email</Text>
+                        <Text>No Handphone</Text>
                         <TextInput
                             style={styles.input}
                             value={data.userAccount}
+                            keyboardType="numeric"
                             onChangeText={(text) => handleChange('userAccount', text)}
                         />
                     </View>

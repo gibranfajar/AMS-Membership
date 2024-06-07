@@ -28,6 +28,7 @@ import VoucherScreen from '../app/screens/Voucher';
 import NotificationScreen from '../app/screens/Notification';
 import NotificationDetailsScreen from '../app/screens/NotificationDetails';
 import RiwayatVoucherScreen from '../app/screens/RiwayatVoucher';
+import InputOTP from '../app/screens/InputOTP';
 
 
 // Stack Navigator untuk bagian tab Home
@@ -77,6 +78,7 @@ const index = () => {
                 <Stack.Screen name="Spalsh" component={SpalshScreen} options={{ headerShown: false }} />
                 <Stack.Screen name="Validasi" component={ValidasiScreen} options={{ headerShown: false }} />
                 <Stack.Screen name="ValidasiForm" component={ValidasiFormScreen} options={{ headerShown: false }} />
+                <Stack.Screen name="InputOTP" component={InputOTP} options={{ headerShown: false }} />
                 <Stack.Screen name="SignUp" component={SignUpScreen} options={{ headerShown: false }} />
                 <Stack.Screen name="SignIn" component={SignInScreen} options={{ headerShown: false }} />
                 <Stack.Screen name="Home" component={HomeStack} options={{ headerShown: false }} />

@@ -16,12 +16,6 @@ const RedeemDetails = ({ route, navigation }) => {
     const [error, setError] = useState(null);
     const [modalVisible, setModalVisible] = useState(false);
 
-    // const [data, setData] = useState({
-    //     id_member: '',
-    //     voucher_code: '',
-    //     ip_address: '',
-    // })
-
     useEffect(() => {
         // Mengambil token pengguna dari penyimpanan lokal (misalnya AsyncStorage)
         const fetchUser = async () => {
@@ -45,14 +39,6 @@ const RedeemDetails = ({ route, navigation }) => {
             const idMember = await AsyncStorage.getItem('idMember');
             // mengambil IP Address pengguna
             const ipDevice = await Network.getIpAddressAsync();
-
-            // setData({
-            //     id_member: idMember,
-            //     voucher_code: voucherCode,
-            //     ip_address: ipDevice,
-            // })
-
-            // console.log(data);
 
             let url = "https://golangapi-j5iu.onrender.com/api/member/mobile/voucher/redeem"
             axios({
@@ -91,17 +77,17 @@ const RedeemDetails = ({ route, navigation }) => {
     }
 
     useEffect(() => {
-        axios.get('https://golangapi-j5iu.onrender.com/api/member/mobile/voucher/tukar?id_member=7B0792985D584A5C9BDA85469662C58E').then((res) => {
-            const filteredData = res.data.voucherData.filter(item => item.voucherCode === voucherCode);
-            setItemDetail(filteredData[0]);
-            setIsLoading(false)
-        }).catch((error) => {
-            return (
-                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                    <Text>{error.message}</Text>
-                </View>
-            )
-        })
+        const fetchItemDetail = async () => {
+            const idMember = await AsyncStorage.getItem('idMember');
+            axios.get(`https://golangapi-j5iu.onrender.com/api/member/mobile/voucher/tukar?id_member=${idMember}`).then((res) => {
+                const filteredData = res.data.voucherData.filter(item => item.voucherCode === voucherCode);
+                setItemDetail(filteredData[0]);
+                setIsLoading(false)
+            }).catch((error) => {
+                console.log(error);
+            })
+        }
+        fetchItemDetail();
     }, []);
 
     if (isLoading) {

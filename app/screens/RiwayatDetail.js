@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Animated, Pressable } from 'react-native';
@@ -8,8 +9,10 @@ const RiwayatDetail = ({ setStatus, status }) => {
     const slide = React.useRef(new Animated.Value(300)).current;
     const [List, setList] = useState([])
 
+    const { idmember } = AsyncStorage.getItem('idMember');
+
     useEffect(() => {
-        axios.get('https://golangapi-j5iu.onrender.com/api/member/mobile/transaction/history?id_member=C45E75694BE24A2D8C0F2D91A0237B9A').then((res) => {
+        axios.get(`https://golangapi-j5iu.onrender.com/api/member/mobile/transaction/history?id_member=${idmember}`).then((res) => {
             const filteredData = res.data.transactionData.filter(item => item.invoice === status);
             setList(filteredData);
             setLoading(false)

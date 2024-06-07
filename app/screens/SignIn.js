@@ -23,7 +23,7 @@ const SignIn = ({ navigation }) => {
         // cek apakah inputan terisi atau tidak
         if (!data.user.trim() || !data.password.trim()) {
             ToastAndroid.show(
-                "Field tidak boleh kosong!",
+                "Inputan tidak boleh kosong!",
                 ToastAndroid.SHORT
             );
             return;

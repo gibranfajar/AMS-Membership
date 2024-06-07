@@ -17,6 +17,7 @@ const EditProfile = ({ navigation }) => {
         password: '',
         provinsi: '',
         kota: '',
+        alamat: '',
         kelamin: '',
         tglLahir: ''
     });
@@ -39,12 +40,11 @@ const EditProfile = ({ navigation }) => {
         }
     ]), []);
 
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
-
     // menampung data jenis kelamin yang dipilih
     const [selectedId, setSelectedId] = useState();
 
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
 
     // menampung data provinsi serta kota
     const [countryData, setCountryData] = useState([]);
@@ -63,6 +63,42 @@ const EditProfile = ({ navigation }) => {
 
     // menampung data minat keseluruhan yang dipilih
     const minat = [busana, olahraga, hiburan, petualangan];
+
+    const [prov, setProv] = useState(null);
+    const [city, setCity] = useState(null);
+
+    useEffect(() => {
+        // Panggil handleState jika nilai country tidak null
+        if (prov) {
+            handleState(prov);
+        }
+    }, [prov]);
+
+    useEffect(() => {
+        // Cek nilai data.kelamin dan set selectedId sesuai dengan nilai yang sesuai
+        if (data.kelamin === 'PRIA') {
+            setSelectedId('l');
+        } else if (data.kelamin === 'WANITA') {
+            setSelectedId('p');
+        }
+    }, [data.kelamin]);
+
+
+    useEffect(() => {
+        // Cek apakah ada data provinsi yang dipilih dalam stateData
+        const selectedCountry = countryData.find(item => item.label === data.provinsi);
+        const selectedCity = stateData.find(item => item.label === data.kota);
+
+        // Jika ada, set nilai prov menjadi value dari objek tersebut
+        if (selectedCountry) {
+            setProv(selectedCountry.value);
+        }
+
+        if (selectedCity) {
+            setCity(selectedCity.value);
+        }
+
+    }, [countryData, data.provinsi, stateData, data.kota]);
 
 
     // menampilkan semua data provinsi
@@ -123,6 +159,7 @@ const EditProfile = ({ navigation }) => {
                     password: '',
                     provinsi: response.data.memberData.provinsi,
                     kota: response.data.memberData.kota,
+                    alamat: response.data.memberData.alamat,
                     kelamin: response.data.memberData.jenisKelamin,
                     tglLahir: response.data.memberData.tanggalLahir,
                 });
@@ -156,6 +193,18 @@ const EditProfile = ({ navigation }) => {
 
     // update data ke backend
     const handleUpdate = async () => {
+
+
+        // cek apakah inputan terisi atau tidak
+        if (!data.namaLengkap.trim() || !data.namaPanggilan.trim() || !data.notelpon.trim() || !data.email.trim() || !data.password.trim() || !data.provinsi.trim() || !data.kota.trim() || !data.kelamin.trim() || !data.tglLahir.trim()) {
+            ToastAndroid.show(
+                "Inputan tidak boleh kosong!",
+                ToastAndroid.SHORT
+            );
+            return;
+        }
+
+
         let url = "https://golangapi-j5iu.onrender.com/api/member/mobile/profile"
         axios({
             method: "PUT",
@@ -261,7 +310,7 @@ const EditProfile = ({ navigation }) => {
                             valueField="value"
                             placeholder={!isFocus ? 'Select country' : ''}
                             searchPlaceholder="Search"
-                            value={country}
+                            value={prov}
                             onFocus={() => setIsFocus(true)}
                             onBlur={() => setIsFocus(false)}
                             onChange={item => {
@@ -289,7 +338,7 @@ const EditProfile = ({ navigation }) => {
                             valueField="value"
                             placeholder={!isFocus ? 'Select state' : ''}
                             searchPlaceholder="Search"
-                            value={state}
+                            value={city}
                             onFocus={() => setIsFocus(true)}
                             onBlur={() => setIsFocus(false)}
                             onChange={item => {

@@ -6,6 +6,7 @@ import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import NetInfo from '@react-native-community/netinfo';
 import axios from 'axios';
 import { Image } from 'expo-image';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Promo = ({ navigation }) => {
     const [isConnected, setIsConnected] = useState(null);
@@ -23,18 +24,23 @@ const Promo = ({ navigation }) => {
         };
     }, []);
 
+    const promo = async () => {
+        try {
+            const idMember = await AsyncStorage.getItem('idMember');
+            axios.get(`https://golangapi-j5iu.onrender.com/api/member/mobile/promo/list?id_member=${idMember}`).then((res) => {
+                setData(res.data.promoData)
+                setIsLoading(false)
+            }).catch((error) => {
+                console.log(error)
+            })
+        } catch (error) {
+            console.log(error);
+        }
+    }
     useEffect(() => {
-        axios.get('https://golangapi-j5iu.onrender.com/api/member/mobile/promo/list?id_member=C45E75694BE24A2D8C0F2D91A0237B9A').then((res) => {
-            setData(res.data.promoData)
-            setIsLoading(false)
-        }).catch((error) => {
-            return (
-                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                    <Text>{error.message}</Text>
-                </View>
-            )
-        })
+        promo()
     }, []);
+
 
     const filterData = (item) => {
         if (promoInput === "") {
@@ -46,7 +52,7 @@ const Promo = ({ navigation }) => {
                 >
                     <View style={styles.card}>
                         <Image
-                            source={`https://web.amscorp.id:3060/imagestorage/${item.imageUrl}`}
+                            source={`https://web.amscorp.id:3060/imagestorage/promo/${item.imageUrl}`}
                             style={styles.promo}
                         />
                         <Text style={{ padding: 10, fontSize: 15, fontWeight: "bold" }}>
@@ -66,7 +72,7 @@ const Promo = ({ navigation }) => {
                 >
                     <View style={styles.card}>
                         <Image
-                            source={`https://web.amscorp.id:3060/imagestorage/${item.imageUrl}`}
+                            source={`https://web.amscorp.id:3060/imagestorage/promo/${item.imageUrl}`}
                             style={styles.promo}
                         />
                         <Text style={{ padding: 10, fontSize: 15, fontWeight: "bold" }}>

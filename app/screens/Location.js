@@ -6,6 +6,7 @@ import axios from 'axios'
 import NetInfo from '@react-native-community/netinfo';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 const Location = ({ navigation }) => {
     const [isConnected, setIsConnected] = useState(null);
@@ -25,23 +26,32 @@ const Location = ({ navigation }) => {
         };
     }, []);
 
+    const locationList = async () => {
+        try {
+            const idMember = await AsyncStorage.getItem('idMember');
+            axios.get(`https://golangapi-j5iu.onrender.com/api/member/mobile/location/list?id_member=${idMember}`).then((res) => {
+                setList(res.data.storeLocationData)
+                setLoading(false)
+            }).catch((error) => {
+                return (
+                    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                        <Text>{error.message}</Text>
+                    </View>
+                )
+            })
+        } catch (error) {
+            console.log(error)
+        }
+    }
     useEffect(() => {
-        axios.get('https://golangapi-j5iu.onrender.com/api/member/mobile/location/list?id_member=C45E75694BE24A2D8C0F2D91A0237B9A').then((res) => {
-            setList(res.data.storeLocationData)
-            setLoading(false)
-        }).catch((error) => {
-            return (
-                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                    <Text>{error.message}</Text>
-                </View>
-            )
-        })
+        locationList();
     }, []);
 
     const fetchDataById = async (id) => {
         try {
+            const idMember = await AsyncStorage.getItem('idMember');
             const response = await axios.get(
-                `https://golangapi-j5iu.onrender.com/api/member/mobile/location/detail?id_member=C45E75694BE24A2D8C0F2D91A0237B9A&id_store=${id}`
+                `https://golangapi-j5iu.onrender.com/api/member/mobile/location/detail?id_member=${idMember}&id_store=${id}`
             );
             setData(response.data.storeLocationData);
             setModalVisible(true);

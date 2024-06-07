@@ -109,6 +109,17 @@ const SignUp = ({ navigation }) => {
 
     // menjalankan tombol registrasi
     const handleRegister = async () => {
+
+
+        // cek apakah inputan terisi atau tidak
+        if (!data.namaLengkap.trim() || !data.namaPanggilan.trim() || !data.notelpon.trim() || !data.email.trim() || !data.password.trim() || !data.provinsi.trim() || !data.kota.trim() || !data.kelamin.trim() || !data.tglLahir.trim()) {
+            ToastAndroid.show(
+                "Inputan tidak boleh kosong!",
+                ToastAndroid.SHORT
+            );
+            return;
+        }
+
         try {
             // kirim permintaan HTTP dengan menyertakan data yang diterima
             const response = await axios.post('https://golangapi-j5iu.onrender.com/api/member/mobile/dashboard/register', data, {
@@ -292,7 +303,7 @@ const SignUp = ({ navigation }) => {
                             style={styles.input}
                             value={data.tglLahir}
                             onChangeText={(text) => handleChange("tglLahir", text)}
-                            placeholder="dd/mm/yyyy"
+                            placeholder="yyyy-mm-dd"
                         />
                     </View>
                 </View>

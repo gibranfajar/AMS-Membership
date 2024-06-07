@@ -35,9 +35,19 @@ const Home = ({ navigation }) => {
         };
     }, []);
 
+    // Memuat data user dan promo
+    useEffect(() => {
+        const intervalId = setInterval(fetchData, 3000);
+        fetchData();
+        promoCarousel();
+        return () => clearInterval(intervalId);
+    }, []);
+
     // Fungsi untuk mengambil data user
     const fetchData = async () => {
         try {
+            // hapus otp
+            await AsyncStorage.removeItem('otp');
             // Ambil idMember dari penyimpanan lokal (AsyncStorage)
             const idMember = await AsyncStorage.getItem('idMember');
 
@@ -85,14 +95,6 @@ const Home = ({ navigation }) => {
         }
     };
 
-    // Memuat data user dan promo
-    useEffect(() => {
-        const intervalId = setInterval(fetchData, 1000);
-        fetchData();
-        promoCarousel();
-        return () => clearInterval(intervalId);
-    }, []);
-
     // Tampilkan indikator loading jika data masih dimuat / masih bernilai true
     if (loading) {
         return (
@@ -106,7 +108,7 @@ const Home = ({ navigation }) => {
     const renderPromo = ({ item }) => {
         return (
             <Pressable onPress={() => navigation.navigate("PromoDetails", { itemId: item.id })}>
-                <Image source={`https://web.amscorp.id:3060/imagestorage/${item.imageUrl}`} style={{ width: widthScreen, height: 200 }} />
+                <Image source={`https://web.amscorp.id:3060/imagestorage/promo/${item.imageUrl}`} style={{ width: widthScreen, height: 200 }} />
             </Pressable>
         )
     }
