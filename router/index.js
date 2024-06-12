@@ -1,7 +1,8 @@
 import 'react-native-gesture-handler';
 import React from 'react'
-import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
-import Foundation from '@expo/vector-icons/Foundation';
+import { AntDesign } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
@@ -29,6 +30,10 @@ import NotificationScreen from '../app/screens/Notification';
 import NotificationDetailsScreen from '../app/screens/NotificationDetails';
 import RiwayatVoucherScreen from '../app/screens/RiwayatVoucher';
 import InputOTP from '../app/screens/InputOTP';
+import AboutUs from '../app/screens/AboutUs';
+import Bantuan from '../app/screens/Bantuan';
+import FAQ from '../app/screens/FAQ';
+import Chat from '../app/screens/Chat';
 
 
 // Stack Navigator untuk bagian tab Home
@@ -41,31 +46,31 @@ const HomeStack = () => (
             headerShown: false,
             title: "Home",
             tabBarHideOnKeyboard: true,
-            tabBarIcon: ({ color }) => <FontAwesome6 name="house" color={color} size={24} />,
+            tabBarIcon: ({ color }) => <AntDesign name="home" size={24} color={color} />,
         }} />
         <Tab.Screen name="Redeem" component={RedeemScreen} options={{
             headerShown: false,
             title: "Redeem",
             tabBarHideOnKeyboard: true,
-            tabBarIcon: ({ color }) => <FontAwesome6 name="gift" color={color} size={24} />,
+            tabBarIcon: ({ color }) => <Ionicons name="gift-outline" size={24} color={color} />,
         }} />
         <Tab.Screen name="Promo" component={PromoScreen} options={{
             headerShown: false,
             title: "Promo",
             tabBarHideOnKeyboard: true,
-            tabBarIcon: ({ color }) => <Foundation name="megaphone" color={color} size={24} />,
+            tabBarIcon: ({ color }) => <Ionicons name="megaphone-outline" size={24} color={color} />,
         }} />
         <Tab.Screen name="Location" component={LocationScreen} options={{
             headerShown: false,
             title: "Location",
             tabBarHideOnKeyboard: true,
-            tabBarIcon: ({ color }) => <FontAwesome6 name="location-dot" color={color} size={24} />,
+            tabBarIcon: ({ color }) => <Ionicons name="location-outline" size={24} color={color} />,
         }} />
         <Tab.Screen name="Profile" component={ProfileScreen} options={{
             headerShown: false,
             title: "Profile",
             tabBarHideOnKeyboard: true,
-            tabBarIcon: ({ color }) => <FontAwesome6 name="user-large" color={color} size={24} />,
+            tabBarIcon: ({ color }) => <Feather name="user" size={24} color={color} />,
         }} />
     </Tab.Navigator>
 );
@@ -175,6 +180,50 @@ const index = () => {
                         },
                         headerTitle: "Notification",
                     }} />
+                <Stack.Screen name="AboutUs" component={AboutUs} options={{
+                    headerStyle: {
+                        backgroundColor: "#021D43",
+                    },
+                    headerTintColor: "white",
+                    headerTitleAlign: "center",
+                    headerTitleStyle: {
+                        fontWeight: "bold",
+                    },
+                    headerTitle: "Tentang Kami",
+                }} />
+                <Stack.Screen name="Bantuan" component={Bantuan} options={{
+                    headerStyle: {
+                        backgroundColor: "#021D43",
+                    },
+                    headerTintColor: "white",
+                    headerTitleAlign: "center",
+                    headerTitleStyle: {
+                        fontWeight: "bold",
+                    },
+                    headerTitle: "Pusat Bantuan",
+                }} />
+                <Stack.Screen name="FAQ" component={FAQ} options={{
+                    headerStyle: {
+                        backgroundColor: "#021D43",
+                    },
+                    headerTintColor: "white",
+                    headerTitleAlign: "center",
+                    headerTitleStyle: {
+                        fontWeight: "bold",
+                    },
+                    headerTitle: "Pusat Bantuan",
+                }} />
+                <Stack.Screen name="Chat" component={Chat} options={{
+                    headerStyle: {
+                        backgroundColor: "#021D43",
+                    },
+                    headerTintColor: "white",
+                    headerTitleAlign: "center",
+                    headerTitleStyle: {
+                        fontWeight: "bold",
+                    },
+                    headerTitle: "Pusat Bantuan",
+                }} />
             </Stack.Navigator>
         </NavigationContainer>
     )

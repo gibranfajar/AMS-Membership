@@ -1,7 +1,7 @@
 import { ActivityIndicator, Pressable, StatusBar, StyleSheet, Text, TextInput, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { FlatList } from 'react-native-gesture-handler'
+import { FlatList, RefreshControl } from 'react-native-gesture-handler'
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import NetInfo from '@react-native-community/netinfo';
 import axios from 'axios';
@@ -13,6 +13,16 @@ const Promo = ({ navigation }) => {
     const [data, setData] = useState(null);
     const [promoInput, setPromoInput] = useState("");
     const [isLoading, setIsLoading] = useState(true);
+
+    const [refreshing, setRefreshing] = useState(false);
+
+    const onRefresh = () => {
+        setRefreshing(true);
+        promo();
+        setTimeout(() => {
+            setRefreshing(false);
+        }, 2000); // Contoh: Penyegaran palsu selama 2 detik
+    };
 
     useEffect(() => {
         const unsubscribe = NetInfo.addEventListener(state => {
@@ -56,14 +66,14 @@ const Promo = ({ navigation }) => {
                             style={styles.promo}
                         />
                         <Text style={{ padding: 10, fontSize: 15, fontWeight: "bold" }}>
-                            {item.imageTitle}
+                            {item.promoTitle}
                         </Text>
                     </View>
                 </Pressable>
             )
         }
 
-        if (item.imageTitle.toLowerCase().includes(promoInput.toLowerCase()) || item.promoDetail.toLowerCase().includes(promoInput.toLowerCase()) || item.promoLocation.toLowerCase().includes(promoInput.toLowerCase())) {
+        if (item.promoTitle.toLowerCase().includes(promoInput.toLowerCase()) || item.promoDetail.toLowerCase().includes(promoInput.toLowerCase()) || item.promoLocation.toLowerCase().includes(promoInput.toLowerCase())) {
             return (
                 <Pressable
                     onPress={() => {
@@ -76,7 +86,7 @@ const Promo = ({ navigation }) => {
                             style={styles.promo}
                         />
                         <Text style={{ padding: 10, fontSize: 15, fontWeight: "bold" }}>
-                            {item.imageTitle}
+                            {item.promoTitle}
                         </Text>
                     </View>
                 </Pressable>
@@ -114,7 +124,7 @@ const Promo = ({ navigation }) => {
                         style={{
                             borderWidth: 1,
                             borderColor: "#C3C3C3",
-                            margin: 10,
+                            margin: 15,
                             padding: 5,
                             borderRadius: 5,
                         }}
@@ -125,6 +135,12 @@ const Promo = ({ navigation }) => {
                         data={data}
                         keyExtractor={(item) => String(item.id)}
                         renderItem={({ item }) => filterData(item)}
+                        refreshControl={
+                            <RefreshControl
+                                refreshing={refreshing}
+                                onRefresh={onRefresh}
+                            />
+                        }
                     />
                 </View>
             ) : (
@@ -149,7 +165,8 @@ const styles = StyleSheet.create({
         height: 35
     },
     card: {
-        margin: 10,
+        marginHorizontal: 15,
+        marginVertical: 8,
         borderWidth: 1,
         borderRadius: 10,
         borderColor: "#C3C3C3",

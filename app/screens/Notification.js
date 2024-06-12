@@ -4,7 +4,7 @@ import Foundation from '@expo/vector-icons/Foundation';
 
 const Notification = ({ navigation }) => {
     return (
-        <View style={{ flex: 1, margin: 10 }}>
+        <View style={{ flex: 1, margin: 15 }}>
 
         </View>
     )

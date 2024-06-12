@@ -1,7 +1,7 @@
 import { ActivityIndicator, Image, Pressable, StatusBar, StyleSheet, Text, TextInput, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { FlatList } from 'react-native-gesture-handler'
+import { FlatList, RefreshControl } from 'react-native-gesture-handler'
 
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 
@@ -18,6 +18,35 @@ const Redeem = ({ navigation }) => {
     const [error, setError] = useState(null);
     const [redeemInput, setRedeemInput] = useState("");
 
+    const [point, setPoint] = useState(0);
+
+    const [refreshing, setRefreshing] = useState(false);
+
+    const onRefresh = () => {
+        setRefreshing(true);
+        fetchData();
+        setTimeout(() => {
+            setRefreshing(false);
+        }, 2000); // Contoh: Penyegaran palsu selama 2 detik
+    };
+
+    useEffect(() => {
+        const loadPoints = async () => {
+            try {
+                const savedPoints = await AsyncStorage.getItem('userPoints');
+                if (savedPoints !== null) {
+                    setPoint(parseInt(savedPoints, 10));
+                }
+            } catch (error) {
+                console.error('Failed to load points from AsyncStorage', error);
+            }
+        };
+
+        loadPoints();
+    }, []);
+
+
+
     // fungsi untuk memeriksa koneksi internet
     useEffect(() => {
         const unsubscribe = NetInfo.addEventListener(state => {
@@ -29,7 +58,7 @@ const Redeem = ({ navigation }) => {
         };
     }, []);
 
-    useEffect(() => {
+    const fetchData = async () => {
         try {
             const idMember = AsyncStorage.getItem('idMember');
             axios.get(`https://golangapi-j5iu.onrender.com/api/member/mobile/voucher/tukar?id_member=${idMember}`).then((res) => {
@@ -41,6 +70,10 @@ const Redeem = ({ navigation }) => {
         } catch (error) {
             console.log(error);
         }
+    };
+
+    useEffect(() => {
+        fetchData();
     }, []);
 
     useEffect(() => {
@@ -58,10 +91,18 @@ const Redeem = ({ navigation }) => {
     }, []);
 
     const filterData = (item) => {
+        const isDisabled = point < item.pointVoucher;
         if (redeemInput === "") {
             return (
-                <Pressable onPress={() => { navigation.navigate("RedeemDetails", { voucherCode: item.voucherCode }) }}>
-                    <View style={styles.card}>
+                <Pressable
+                    onPress={() => {
+                        if (!isDisabled) {
+                            navigation.navigate("RedeemDetails", { voucherCode: item.voucherCode });
+                        }
+                    }}
+                    disabled={isDisabled}
+                >
+                    <View style={[styles.card, isDisabled && styles.cardDisabled]}>
                         <View style={styles.topCard}>
                             <Text style={{ color: "white", fontSize: 16 }}>Voucher</Text>
                             <Text style={{ color: "yellow" }}>{item.pointVoucher} Point</Text>
@@ -74,8 +115,15 @@ const Redeem = ({ navigation }) => {
 
         if (item.nominal.toString().toLowerCase().includes(redeemInput.toLowerCase()) || item.pointVoucher.toString().toLowerCase().includes(redeemInput.toLowerCase())) {
             return (
-                <Pressable onPress={() => { navigation.navigate("RedeemDetails", { voucherCode: item.voucherCode }) }}>
-                    <View style={styles.card}>
+                <Pressable
+                    onPress={() => {
+                        if (!isDisabled) {
+                            navigation.navigate("RedeemDetails", { voucherCode: item.voucherCode });
+                        }
+                    }}
+                    disabled={isDisabled}
+                >
+                    <View style={[styles.card, isDisabled && styles.cardDisabled]}>
                         <View style={styles.topCard}>
                             <Text style={{ color: "white", fontSize: 16 }}>Voucher</Text>
                             <Text style={{ color: "yellow" }}>{item.pointVoucher} Point</Text>
@@ -122,6 +170,12 @@ const Redeem = ({ navigation }) => {
                         showsVerticalScrollIndicator={false}
                         data={data}
                         renderItem={({ item }) => filterData(item)}
+                        refreshControl={
+                            <RefreshControl
+                                refreshing={refreshing}
+                                onRefresh={onRefresh}
+                            />
+                        }
                     />
                 </View>
             ) : (
@@ -149,12 +203,13 @@ const styles = StyleSheet.create({
     searchBar: {
         borderWidth: 1,
         borderColor: "#C3C3C3",
-        margin: 10,
+        margin: 15,
         padding: 5,
         borderRadius: 5,
     },
     card: {
-        margin: 10,
+        marginHorizontal: 15,
+        marginVertical: 8,
         borderWidth: 1,
         borderRadius: 11,
         borderColor: "#C3C3C3",
@@ -167,6 +222,10 @@ const styles = StyleSheet.create({
         padding: 10,
         borderTopEndRadius: 10,
         borderTopStartRadius: 10,
+    },
+    cardDisabled: {
+        backgroundColor: '#C3C3C3',  // Ganti warna untuk menunjukkan card ter-disable
+        opacity: 0.6,
     },
 });
 

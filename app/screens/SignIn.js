@@ -6,6 +6,7 @@ import axios from "axios";
 
 const SignIn = ({ navigation }) => {
 
+    const [isPressed, setIsPressed] = useState(false);
     // menampung data dari inputan
     const [data, setData] = useState({
         user: '',
@@ -85,11 +86,12 @@ const SignIn = ({ navigation }) => {
                 </Text>
 
                 <View style={styles.form}>
-                    <Text>Email</Text>
+                    <Text>User</Text>
                     <TextInput
                         style={styles.input}
                         value={data.user}
                         onChangeText={(text) => handleChange('user', text)}
+                        placeholder="Masukkan Email / No Handphone"
                     />
                 </View>
 
@@ -100,11 +102,21 @@ const SignIn = ({ navigation }) => {
                         secureTextEntry={true}
                         value={data.password}
                         onChangeText={(text) => handleChange('password', text)}
+                        placeholder="Masukkan Password"
                     />
                 </View>
 
-                <Pressable onPress={handleLogin}>
-                    <Text style={styles.buttonLogin}>
+                <Pressable
+                    onPress={() => {
+                        setIsPressed(true);
+                        handleLogin();
+                    }}
+                    style={({ pressed }) => [
+                        styles.buttonLogin,
+                        { backgroundColor: pressed || isPressed ? '#00429F' : '#021D43' }, // Ganti warna saat tombol ditekan
+                    ]}
+                >
+                    <Text style={{ color: 'white', textAlign: 'center' }}>
                         Login
                     </Text>
                 </Pressable>

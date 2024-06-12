@@ -17,17 +17,13 @@ Notifications.setNotificationHandler({
 });
 
 export default function App() {
-  const [expoPushToken, setExpoPushToken] = useState('');
   const [notification, setNotification] = useState(false);
   const notificationListener = useRef();
   const responseListener = useRef();
 
   useEffect(() => {
     registerForPushNotificationsAsync().then(token => {
-      if (token) {
-        setExpoPushToken(token);
-        sendTokenToBackend(token); // Mengirim token ke backend
-      }
+      AsyncStorage.setItem('ExpoPushToken', token);
     });
 
     notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
@@ -98,19 +94,3 @@ async function registerForPushNotificationsAsync() {
   return token;
 }
 
-async function sendTokenToBackend(token) {
-  try {
-    const idMember = await AsyncStorage.getItem('idMember');
-    const response = await axios.post('https://golangapi-j5iu.onrender.com/api/member/mobile/token/notification', {
-      id_member: idMember,
-      ExpoPushToken: token,
-    }, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-    console.log('Token sent to backend:', response.data);
-  } catch (error) {
-    console.error('Error sending token to backend:', error.response ? error.response.data : error.message);
-  }
-}

@@ -31,17 +31,15 @@ const PromoDetails = ({ route }) => {
         );
     }
 
-    console.log(itemDetail);
-
     return (
-        <View style={{ flex: 1, margin: 20 }}>
+        <View style={{ flex: 1, margin: 25 }}>
             <Image
                 source={`https://web.amscorp.id:3060/imagestorage/promo/${itemDetail.imageUrl}`}
                 style={styles.promo}
             />
             <View style={{ marginVertical: 20 }}>
                 <Text style={{ fontSize: 20, fontWeight: "bold", textAlign: "center" }}>
-                    {itemDetail.imageTitle}
+                    {itemDetail.promoTitle}
                 </Text>
                 <Text style={{ textAlign: "center", marginVertical: 10 }}>
                     {itemDetail.promoDetail}

@@ -5,6 +5,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 
 const ValidasiForm = ({ navigation }) => {
+    const [isPressed, setIsPressed] = useState(false);
     // untuk menampung data dari inputan
     const [data, setData] = useState({
         userAccount: '',
@@ -130,12 +131,22 @@ const ValidasiForm = ({ navigation }) => {
                             value={data.userAccount}
                             keyboardType="numeric"
                             onChangeText={(text) => handleChange('userAccount', text)}
+                            placeholder="Masukkan No Handphone"
                         />
                     </View>
 
 
-                    <Pressable onPress={handleValidation}>
-                        <Text style={styles.buttonValidasi}>
+                    <Pressable
+                        onPress={() => {
+                            setIsPressed(true);
+                            handleValidation();
+                        }}
+                        style={({ pressed }) => [
+                            styles.buttonValidasi,
+                            { backgroundColor: pressed || isPressed ? '#00429F' : '#021D43' }, // Ganti warna saat tombol ditekan
+                        ]}
+                    >
+                        <Text style={{ color: 'white', textAlign: 'center' }}>
                             Validasi
                         </Text>
                     </Pressable>
@@ -177,7 +188,6 @@ const styles = StyleSheet.create({
     buttonValidasi: {
         backgroundColor: "#021D43",
         color: "white",
-        textAlign: "center",
         padding: 10,
         borderRadius: 25,
         marginHorizontal: 80,

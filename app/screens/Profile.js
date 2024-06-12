@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, SafeAreaView, StatusBar, Pressable, ActivityIndicator, Image } from 'react-native'
 import React, { useEffect, useState } from 'react'
-import { ScrollView } from 'react-native-gesture-handler';
+import { RefreshControl, ScrollView } from 'react-native-gesture-handler';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
@@ -14,6 +14,16 @@ const Profile = ({ navigation }) => {
     const [isConnected, setIsConnected] = useState(null);
     const [data, setData] = useState();
     const [loading, setLoading] = useState(true);
+
+    const [refreshing, setRefreshing] = useState(false);
+
+    const onRefresh = () => {
+        setRefreshing(true);
+        fetchData();
+        setTimeout(() => {
+            setRefreshing(false);
+        }, 2000); // Contoh: Penyegaran palsu selama 2 detik
+    };
 
     useEffect(() => {
         const unsubscribe = NetInfo.addEventListener(state => {
@@ -111,7 +121,13 @@ const Profile = ({ navigation }) => {
                             </View>
                         </Pressable>
                     </View>
-                    <ScrollView>
+                    <ScrollView
+                        refreshControl={
+                            <RefreshControl
+                                refreshing={refreshing}
+                                onRefresh={onRefresh}
+                            />
+                        }>
                         {/* riwayat transaksi */}
                         <Pressable
                             onPress={() => {
@@ -132,7 +148,7 @@ const Profile = ({ navigation }) => {
                         {/* tentang kami */}
                         <Pressable
                             onPress={() => {
-                                // navigation.navigate("");
+                                navigation.navigate("AboutUs");
                             }}
                         >
                             <View style={styles.list}>
@@ -149,7 +165,7 @@ const Profile = ({ navigation }) => {
                         {/* bantuan */}
                         <Pressable
                             onPress={() => {
-                                // navigation.navigate("");
+                                navigation.navigate("Bantuan");
                             }}
                         >
                             <View style={styles.list}>
@@ -209,7 +225,7 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
-        marginHorizontal: 10,
+        marginHorizontal: 15,
         marginVertical: 5,
         borderColor: "#C3C3C3",
         borderWidth: 1,

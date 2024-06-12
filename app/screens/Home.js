@@ -1,14 +1,66 @@
 import { View, Text, StatusBar, StyleSheet, Pressable, ActivityIndicator, Linking, Dimensions } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import { FlatList, ScrollView } from 'react-native-gesture-handler';
+import { FlatList, RefreshControl, ScrollView } from 'react-native-gesture-handler';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
+import { Ionicons } from '@expo/vector-icons';
 import NetInfo from '@react-native-community/netinfo';
 import { Image } from 'expo-image';
 
 const Home = ({ navigation }) => {
+    const [refreshing, setRefreshing] = useState(false);
+    const flatlistRef = useRef();
+    const [activeIndex, setActiveIndex] = useState(0);
+
+    // Auto Scroll
+
+    useEffect(() => {
+        let interval = setInterval(() => {
+            if (activeIndex === promoData.length - 1) {
+                flatlistRef.current.scrollToIndex({
+                    index: 0,
+                    animation: true,
+                });
+            } else {
+                flatlistRef.current.scrollToIndex({
+                    index: activeIndex + 1,
+                    animation: true,
+                });
+            }
+        }, 2000);
+
+        return () => clearInterval(interval);
+    });
+
+    const getItemLayout = (data, index) => ({
+        length: widthScreen,
+        offset: widthScreen * index, // for first image - 300 * 0 = 0pixels, 300 * 1 = 300, 300*2 = 600
+        index: index,
+    });
+
+    // Handle Scroll
+    const handleScroll = (event) => {
+        // Get the scroll position
+        const scrollPosition = event.nativeEvent.contentOffset.x;
+        // Get the index of current active item
+
+        const index = scrollPosition / widthScreen;
+
+        // Update the index
+
+        setActiveIndex(index);
+    };
+
+    const onRefresh = () => {
+        setRefreshing(true);
+        // Lakukan logika penyegaran di sini
+        setTimeout(() => {
+            setRefreshing(false);
+        }, 2000); // Contoh: Penyegaran palsu selama 2 detik
+    };
+
     // mengambil lebar layar
     const widthScreen = Dimensions.get('window').width
 
@@ -17,6 +69,18 @@ const Home = ({ navigation }) => {
 
     // Menampung data user
     const [data, setData] = useState();
+    const [point, setPoint] = useState(0);
+    useEffect(() => {
+        const savePoints = async () => {
+            try {
+                await AsyncStorage.setItem('userPoints', point.toString());
+            } catch (error) {
+                console.error('Failed to save points to AsyncStorage', error);
+            }
+        };
+
+        savePoints();
+    }, [point]);
 
     // Menampung data promo
     const [promoData, setPromoData] = useState();
@@ -43,6 +107,30 @@ const Home = ({ navigation }) => {
         return () => clearInterval(intervalId);
     }, []);
 
+    // post notification to server
+    const tokenExpo = async () => {
+        try {
+            const idMember = await AsyncStorage.getItem('idMember');
+            const token = await AsyncStorage.getItem('ExpoPushToken');
+            const response = await axios.post('https://crm.flies.co.id/public/api/notification', {
+                id_member: idMember,
+                ExpoPushToken: token,
+            }, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+            console.log('Token sent to backend:', response.data);
+        } catch (error) {
+            console.error('Error sending token to backend:', error.response ? error.response.data : error.message);
+        }
+    }
+
+    useEffect(() => {
+        tokenExpo();
+    }, []);
+
+
     // Fungsi untuk mengambil data user
     const fetchData = async () => {
         try {
@@ -56,6 +144,7 @@ const Home = ({ navigation }) => {
 
             // kirimkan data yang diterima ke dalam state data
             setData(response.data.memberInfoData);
+            setPoint(response.data.memberInfoData.sisaPoint);
             // ubah loading menjadi false
             setLoading(false);
         } catch (error) {
@@ -114,7 +203,7 @@ const Home = ({ navigation }) => {
     }
 
     return (
-        <SafeAreaView style={{ flex: 1 }}>
+        <SafeAreaView style={{ flex: 1 }} >
 
             <StatusBar backgroundColor={'#021D43'} />
 
@@ -132,7 +221,13 @@ const Home = ({ navigation }) => {
                         </Pressable>
                     </View>
 
-                    <ScrollView showsVerticalScrollIndicator={false}>
+                    <ScrollView showsVerticalScrollIndicator={false}
+                        refreshControl={
+                            <RefreshControl
+                                refreshing={refreshing}
+                                onRefresh={onRefresh}
+                            />
+                        }>
                         <View style={styles.head}>
                             <View>
                                 <Text style={styles.textHead}>
@@ -160,7 +255,7 @@ const Home = ({ navigation }) => {
 
                             {/* Gift */}
                             <Pressable style={styles.cardMenu} onPress={() => { navigation.navigate("Voucher") }}>
-                                <FontAwesome6 name='gift' color={'#1d1d1d'} size={20} style={{ justifyContent: 'flex-end', alignSelf: 'center' }} />
+                                <Ionicons name='gift-outline' color={'#1d1d1d'} size={24} style={{ justifyContent: 'flex-end', alignSelf: 'center' }} />
                             </Pressable>
                         </View>
 
@@ -174,7 +269,16 @@ const Home = ({ navigation }) => {
 
 
                         {/* CAROUSEL PROMO */}
-                        <FlatList data={promoData} renderItem={renderPromo} horizontal pagingEnabled showsHorizontalScrollIndicator={false} />
+                        <FlatList
+                            data={promoData}
+                            ref={flatlistRef}
+                            getItemLayout={getItemLayout}
+                            renderItem={renderPromo}
+                            keyExtractor={(item) => item.id}
+                            horizontal={true}
+                            pagingEnabled={true}
+                            onScroll={handleScroll}
+                        />
 
 
                         <View style={{ backgroundColor: '#021D43', marginBottom: 15, padding: 10, marginVertical: 20 }}>
@@ -247,7 +351,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#021D43'
     },
     head: {
-        padding: 20,
+        padding: 25,
         paddingBottom: 50,
         backgroundColor: '#021D43',
         borderBottomEndRadius: 15,
@@ -270,16 +374,16 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginHorizontal: 20,
+        marginHorizontal: 23,
         marginBottom: 15
     },
     brandsCols: {
         flexDirection: 'row',
-        justifyContent: 'space-between'
+        justifyContent: 'space-evenly',
     },
     clcs: {
-        width: 130,
-        height: 25
+        width: 90,
+        height: 17
     },
     msp: {
         width: 130,
@@ -290,7 +394,7 @@ const styles = StyleSheet.create({
         height: 20
     },
     flies: {
-        width: 60,
+        width: 46,
         height: 20
     },
     head: {
@@ -302,13 +406,12 @@ const styles = StyleSheet.create({
     },
     card: {
         flex: 1,
-        marginHorizontal: 10,
-        marginVertical: 10,
+        marginVertical: 5,
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: '#fff',
         width: 160,
-        padding: 30,
+        padding: 33,
         borderRadius: 5
     }
 });

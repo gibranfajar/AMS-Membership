@@ -2,7 +2,6 @@ import {
     View,
     Text,
     Pressable,
-    ScrollView,
     Modal,
     Image,
     StyleSheet,
@@ -10,11 +9,11 @@ import {
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Foundation from '@expo/vector-icons/Foundation';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import axios from "axios";
 import { FlatList } from "react-native-gesture-handler";
 import Barcode from '@kichiyaki/react-native-barcode-generator';
+import { Ionicons } from '@expo/vector-icons';
 
 
 const Voucher = ({ route, navigation }) => {
@@ -64,7 +63,7 @@ const Voucher = ({ route, navigation }) => {
 
 
     return (
-        <View style={{ flex: 1, margin: 20 }}>
+        <View style={{ flex: 1, margin: 25 }}>
             <View
                 style={{
                     backgroundColor: "#ffffff",
@@ -91,7 +90,7 @@ const Voucher = ({ route, navigation }) => {
                         navigation.navigate("RiwayatVoucher");
                     }}
                 >
-                    <Foundation name="clipboard-notes" color={'#1d1d1d'} size={20} />
+                    <Ionicons name="document-text-outline" size={24} color={'#1d1d1d'} />
                     <Text>Riwayat</Text>
                 </Pressable>
             </View>
@@ -236,7 +235,7 @@ const styles = StyleSheet.create({
     },
     modalView: {
         top: 100,
-        margin: 10,
+        margin: 15,
         backgroundColor: "white",
         borderRadius: 10,
         padding: 10,

@@ -1,8 +1,7 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { FlatList } from 'react-native-gesture-handler';
-
-import Foundation from '@expo/vector-icons/Foundation';
+import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -53,7 +52,7 @@ const RiwayatVoucher = ({ navigation }) => {
 
 
     return (
-        <View style={{ flex: 1, margin: 20 }}>
+        <View style={{ flex: 1, margin: 25 }}>
             <View
                 style={{
                     backgroundColor: "#ffffff",
@@ -80,7 +79,7 @@ const RiwayatVoucher = ({ navigation }) => {
                         navigation.navigate("RiwayatVoucher");
                     }}
                 >
-                    <Foundation name='clipboard-notes' color={'#1d1d1d'} size={20} />
+                    <Ionicons name="document-text-outline" size={24} color={'#1d1d1d'} />
                     <Text>Riwayat</Text>
                 </Pressable>
             </View>

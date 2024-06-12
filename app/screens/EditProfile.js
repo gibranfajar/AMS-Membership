@@ -8,6 +8,8 @@ import { RadioGroup } from 'react-native-radio-buttons-group';
 
 const EditProfile = ({ navigation }) => {
 
+    const [isPressed, setIsPressed] = useState(false);
+
     const [data, setData] = useState({
         id_member: '',
         namaLengkap: '',
@@ -308,7 +310,7 @@ const EditProfile = ({ navigation }) => {
                             maxHeight={300}
                             labelField="label"
                             valueField="value"
-                            placeholder={!isFocus ? 'Select country' : ''}
+                            placeholder={!isFocus ? 'Pilih Provinsi' : ''}
                             searchPlaceholder="Search"
                             value={prov}
                             onFocus={() => setIsFocus(true)}
@@ -336,7 +338,7 @@ const EditProfile = ({ navigation }) => {
                             maxHeight={300}
                             labelField="label"
                             valueField="value"
-                            placeholder={!isFocus ? 'Select state' : ''}
+                            placeholder={!isFocus ? 'Pilih Kota' : ''}
                             searchPlaceholder="Search"
                             value={city}
                             onFocus={() => setIsFocus(true)}
@@ -385,18 +387,16 @@ const EditProfile = ({ navigation }) => {
                 </View>
 
                 <Pressable
-                    onPress={handleUpdate}
+                    onPress={() => {
+                        setIsPressed(true);
+                        handleUpdate();
+                    }}
+                    style={({ pressed }) => [
+                        styles.buttonEdit,
+                        { backgroundColor: pressed || isPressed ? '#00429F' : '#021D43' }, // Ganti warna saat tombol ditekan
+                    ]}
                 >
-                    <Text
-                        style={{
-                            backgroundColor: "#021D43",
-                            color: "white",
-                            textAlign: "center",
-                            padding: 10,
-                            borderRadius: 25,
-                            marginHorizontal: 80,
-                        }}
-                    >
+                    <Text style={{ textAlign: "center", color: "white" }}>
                         Ubah
                     </Text>
                 </Pressable>
@@ -424,7 +424,7 @@ const styles = StyleSheet.create({
     },
     form: {
         flex: 1,
-        marginHorizontal: 20,
+        marginHorizontal: 25,
         marginVertical: 15,
     },
     input: {
@@ -455,6 +455,13 @@ const styles = StyleSheet.create({
     selectedTextStyle: {
         fontSize: 14,
     },
+    buttonEdit: {
+        backgroundColor: "#021D43",
+        color: "white",
+        padding: 10,
+        borderRadius: 25,
+        marginHorizontal: 80,
+    }
 });
 
 export default EditProfile

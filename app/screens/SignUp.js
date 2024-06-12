@@ -8,6 +8,8 @@ import Checkbox from "expo-checkbox";
 import { RadioGroup } from "react-native-radio-buttons-group";
 
 const SignUp = ({ navigation }) => {
+    const [tglLahir, setTglLahir] = useState('');
+    const [tglLahirFormatted, setTglLahirFormatted] = useState('');
 
     // menampung semua data dari inputan
     const [data, setData] = useState({
@@ -24,10 +26,33 @@ const SignUp = ({ navigation }) => {
         alamat: "",
     })
 
+    const handleChange = (key, value) => {
+        setData({ ...data, [key]: value })
+    }
 
     // untuk menerima data dari inputan
-    const handleChange = (key, value) => {
-        setData({ ...data, [key]: value });
+    const handleChangetglLahir = (text) => {
+        // Hapus semua karakter non-digit
+        const cleanedValue = text.replace(/\D/g, '');
+
+        // Format tanggal dengan menambahkan dash setiap dua karakter
+        let formattedDate = '';
+        for (let i = 0; i < cleanedValue.length; i++) {
+            if (i === 2 || i === 4) {
+                formattedDate += '-';
+            }
+            formattedDate += cleanedValue[i];
+        }
+
+        // Set state tglLahirFormatted dengan format yang sesuai
+        setTglLahirFormatted(formattedDate);
+
+        // Jika jumlah karakter sesuai dengan format, simpan dalam state tglLahir
+        if (cleanedValue.length === 8) {
+            const yyyyMMdd = formattedDate.split('-').reverse().join('-');
+            setTglLahir(yyyyMMdd);
+            handleChange('tglLahir', yyyyMMdd);
+        }
     };
 
 
@@ -67,6 +92,7 @@ const SignUp = ({ navigation }) => {
     // menampung data minat keseluruhan yang dipilih
     const minat = [busana, olahraga, hiburan, petualangan];
 
+    const [isPressed, setIsPressed] = useState(false);
 
     // menampilkan semua data provinsi
     useEffect(() => {
@@ -112,7 +138,7 @@ const SignUp = ({ navigation }) => {
 
 
         // cek apakah inputan terisi atau tidak
-        if (!data.namaLengkap.trim() || !data.namaPanggilan.trim() || !data.notelpon.trim() || !data.email.trim() || !data.password.trim() || !data.provinsi.trim() || !data.kota.trim() || !data.kelamin.trim() || !data.tglLahir.trim()) {
+        if (!data.namaLengkap.trim() || !data.namaPanggilan.trim() || !data.notelpon.trim() || !data.email.trim() || !data.password.trim() || !data.kelamin.trim() || !data.tglLahir.trim() || !data.alamat.trim()) {
             ToastAndroid.show(
                 "Inputan tidak boleh kosong!",
                 ToastAndroid.SHORT
@@ -135,7 +161,7 @@ const SignUp = ({ navigation }) => {
 
                 // alert dengan toast android
                 ToastAndroid.show(
-                    "Validasi Berhasil!",
+                    "Registrasi Berhasil!",
                     ToastAndroid.SHORT
                 );
 
@@ -144,9 +170,10 @@ const SignUp = ({ navigation }) => {
             } else {
                 // alert dengan toast android
                 ToastAndroid.show(
-                    "Validasi Gagal!",
+                    "Registrasi Gagal!",
                     ToastAndroid.SHORT
                 );
+                console.log(response.data.responseMessage);
             }
         } catch (error) {
             console.log(error);
@@ -178,6 +205,7 @@ const SignUp = ({ navigation }) => {
                         style={styles.input}
                         value={data.namaLengkap}
                         onChangeText={(text) => handleChange("namaLengkap", text)}
+                        placeholder="Masukkan Nama Lengkap"
                     />
                 </View>
 
@@ -187,6 +215,7 @@ const SignUp = ({ navigation }) => {
                         style={styles.input}
                         value={data.namaPanggilan}
                         onChangeText={(text) => handleChange("namaPanggilan", text)}
+                        placeholder="Masukkan Nama Panggilan"
                     />
                 </View>
 
@@ -196,6 +225,8 @@ const SignUp = ({ navigation }) => {
                         style={styles.input}
                         value={data.notelpon}
                         onChangeText={(text) => handleChange("notelpon", text)}
+                        placeholder="Masukkan No Handphone"
+                        keyboardType="number-pad"
                     />
                 </View>
 
@@ -205,6 +236,7 @@ const SignUp = ({ navigation }) => {
                         style={styles.input}
                         value={data.email}
                         onChangeText={(text) => handleChange("email", text)}
+                        placeholder="Masukkan Email"
                     />
                 </View>
 
@@ -215,6 +247,7 @@ const SignUp = ({ navigation }) => {
                         secureTextEntry={true}
                         value={data.password}
                         onChangeText={(text) => handleChange("password", text)}
+                        placeholder="Masukkan Password"
                     />
                 </View>
 
@@ -232,7 +265,7 @@ const SignUp = ({ navigation }) => {
                             maxHeight={300}
                             labelField="label"
                             valueField="value"
-                            placeholder={!isFocus ? 'Select country' : ''}
+                            placeholder={!isFocus ? 'Pilih Provinsi' : ''}
                             searchPlaceholder="Search"
                             value={country}
                             onFocus={() => setIsFocus(true)}
@@ -260,7 +293,7 @@ const SignUp = ({ navigation }) => {
                             maxHeight={300}
                             labelField="label"
                             valueField="value"
-                            placeholder={!isFocus ? 'Select state' : ''}
+                            placeholder={!isFocus ? 'Pilih Kota' : ''}
                             searchPlaceholder="Search"
                             value={state}
                             onFocus={() => setIsFocus(true)}
@@ -281,6 +314,7 @@ const SignUp = ({ navigation }) => {
                         style={styles.input}
                         value={data.alamat}
                         onChangeText={(text) => handleChange("alamat", text)}
+                        placeholder="Masukkan Alamat"
                     />
                 </View>
 
@@ -301,9 +335,11 @@ const SignUp = ({ navigation }) => {
                         <Text>Tanggal Lahir</Text>
                         <TextInput
                             style={styles.input}
-                            value={data.tglLahir}
-                            onChangeText={(text) => handleChange("tglLahir", text)}
-                            placeholder="yyyy-mm-dd"
+                            value={tglLahirFormatted}
+                            onChangeText={handleChangetglLahir}
+                            placeholder="dd-mm-yyyy"
+                            keyboardType="numeric"
+                            maxLength={10} // Maksimal panjang input adalah 10 karakter (dd-mm-yyyy)
                         />
                     </View>
                 </View>
@@ -356,8 +392,17 @@ const SignUp = ({ navigation }) => {
                     </View>
                 </View> */}
 
-                <Pressable onPress={handleRegister} >
-                    <Text style={styles.buttonDaftar}>
+                <Pressable
+                    onPress={() => {
+                        setIsPressed(true); // Set state saat tombol ditekan
+                        handleRegister(); // Panggil fungsi handleRegister saat tombol ditekan
+                    }}
+                    style={({ pressed }) => [
+                        styles.buttonDaftar,
+                        { backgroundColor: pressed || isPressed ? '#00429F' : '#021D43' }, // Ganti warna saat tombol ditekan
+                    ]}
+                >
+                    <Text style={{ textAlign: 'center', color: 'white' }}>
                         Daftar
                     </Text>
                 </Pressable>

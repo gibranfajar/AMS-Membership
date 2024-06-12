@@ -3,7 +3,7 @@ import React from 'react'
 
 const NotificationDetails = () => {
     return (
-        <View style={{ margin: 20 }}>
+        <View style={{ margin: 25 }}>
             <View>
 
             </View>

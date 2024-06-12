@@ -115,7 +115,7 @@ const RedeemDetails = ({ route, navigation }) => {
     }
 
     return (
-        <View style={{ flex: 1, margin: 15 }}>
+        <View style={{ flex: 1, margin: 20 }}>
             <Text style={{ fontSize: 20 }}>
                 Active Points :{" "}
                 <Text style={{ fontWeight: "bold", fontSize: 20 }}>{user.sisaPoint} pts</Text>

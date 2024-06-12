@@ -1,13 +1,49 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image, SafeAreaView, KeyboardAvoidingView, StatusBar, Pressable, ToastAndroid } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 
 const InputOTP = ({ navigation, route }) => {
+    const [isPressed, setIsPressed] = useState(false);
     const { nohandphone } = route.params;
     const [code, setCode] = useState(['', '', '', '', '', '']);
     const inputs = useRef([]);
+
+    useEffect(() => {
+        // Cek apakah semua TextInput terisi
+        const isAllFilled = code.every((digit) => digit !== '');
+
+        if (isAllFilled) {
+            // Jika semua TextInput terisi, jalankan handleVerify setelah 5 detik
+            const timeout = setTimeout(() => {
+                handleVerify();
+            }, 2000);
+
+            // Hapus timeout jika komponen di-unmount atau jika terjadi perubahan pada kode
+            return () => clearTimeout(timeout);
+        }
+    }, [code]); // Efek akan dijalankan ketika ada perubahan pada kode
+
+
+    useEffect(() => {
+        const loadOtp = async () => {
+            // Add a 3-second delay before fetching OTP from AsyncStorage
+            setTimeout(async () => {
+                const initialOtp = await AsyncStorage.getItem('otp');
+                if (initialOtp && typeof initialOtp === 'string') {
+                    const otpArray = initialOtp.split('');
+                    setCode(otpArray);
+                    otpArray.forEach((digit, index) => {
+                        if (digit && inputs.current[index]) {
+                            inputs.current[index].focus();
+                        }
+                    });
+                }
+            }, 2000);
+        };
+        loadOtp();
+    }, []);
 
     const handleInputChange = (text, index) => {
         const newCode = [...code];
@@ -156,8 +192,16 @@ const InputOTP = ({ navigation, route }) => {
                         </Text>
                     </Text>
 
-                    <Pressable onPress={handleVerify}>
-                        <Text style={styles.buttonValidasi}>
+                    <Pressable
+                        onPress={() => {
+                            setIsPressed(true);
+                            handleVerify();
+                        }}
+                        style={({ pressed }) => [
+                            styles.buttonValidasi,
+                            { backgroundColor: pressed || isPressed ? '#00429F' : '#021D43' }, // Ganti warna saat tombol ditekan
+                        ]}>
+                        <Text style={{ textAlign: 'center', color: 'white' }}>
                             Kirim
                         </Text>
                     </Pressable>
