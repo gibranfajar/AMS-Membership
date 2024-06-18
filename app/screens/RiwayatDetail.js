@@ -9,24 +9,31 @@ const RiwayatDetail = ({ setStatus, status }) => {
     const slide = React.useRef(new Animated.Value(300)).current;
     const [List, setList] = useState([])
 
-    const { idmember } = AsyncStorage.getItem('idMember');
-
+    // fungsi untuk memuat data riwayat berdasarkan status(invoice)
     useEffect(() => {
-        axios.get(`https://golangapi-j5iu.onrender.com/api/member/mobile/transaction/history?id_member=${idmember}`).then((res) => {
-            const filteredData = res.data.transactionData.filter(item => item.invoice === status);
-            setList(filteredData);
-            setLoading(false)
-        }).catch((error) => {
-            return (
-                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                    <Text>{error.message}</Text>
-                </View>
-            )
-        })
+        const fetchData = async () => {
+            try {
+                const idmember = await AsyncStorage.getItem('idMember');
+                axios.get(`https://golangapi-j5iu.onrender.com/api/member/mobile/transaction/history?id_member=${idmember}`).then((res) => {
+                    const filteredData = res.data.transactionData.filter(item => item.invoice === status);
+                    setList(filteredData);
+                    setLoading(false)
+                }).catch((error) => {
+                    return (
+                        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                            <Text>{error.message}</Text>
+                        </View>
+                    )
+                })
+            } catch (error) {
+                console.log(error);
+            }
+        }
+
+        fetchData();
     }, []);
 
     const slideUp = () => {
-        // Will change slide up the bottom sheet
         Animated.timing(slide, {
             toValue: 0,
             duration: 200,
@@ -35,7 +42,6 @@ const RiwayatDetail = ({ setStatus, status }) => {
     };
 
     const slideDown = () => {
-        // Will slide down the bottom sheet
         Animated.timing(slide, {
             toValue: 300,
             duration: 200,
@@ -44,18 +50,16 @@ const RiwayatDetail = ({ setStatus, status }) => {
     };
 
 
-    React.useEffect(() => {
+    useEffect(() => {
         slideUp()
     })
 
 
     const closeModal = () => {
         slideDown();
-
         setTimeout(() => {
             setStatus(false);
         }, 200)
-
     }
 
     return (

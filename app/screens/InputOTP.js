@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image, SafeAreaView, KeyboardAvoidingView, StatusBar, Pressable, ToastAndroid } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image, SafeAreaView, KeyboardAvoidingView, StatusBar, Pressable, ToastAndroid, ActivityIndicator } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 
 const InputOTP = ({ navigation, route }) => {
@@ -129,14 +129,16 @@ const InputOTP = ({ navigation, route }) => {
                     "Akun Berhasil Diverifikasi!",
                     ToastAndroid.SHORT
                 );
-                navigation.navigate('Home');
+                navigation.replace('Home');
             } else {
+                setIsPressed(false);
                 ToastAndroid.show(
                     "Kode Tidak Sesuai!",
                     ToastAndroid.SHORT
                 );
             }
         } catch (error) {
+            setIsPressed(false);
             console.log(error);
         }
     };
@@ -197,12 +199,9 @@ const InputOTP = ({ navigation, route }) => {
                             setIsPressed(true);
                             handleVerify();
                         }}
-                        style={({ pressed }) => [
-                            styles.buttonValidasi,
-                            { backgroundColor: pressed || isPressed ? '#00429F' : '#021D43' }, // Ganti warna saat tombol ditekan
-                        ]}>
+                        style={({ pressed }) => [styles.buttonValidasi, { opacity: pressed ? 0.5 : 1 }]}>
                         <Text style={{ textAlign: 'center', color: 'white' }}>
-                            Kirim
+                            {isPressed ? <ActivityIndicator size="small" color="white" /> : 'Kirim'}
                         </Text>
                     </Pressable>
                 </ScrollView>

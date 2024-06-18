@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, TextInput, Pressable, StyleSheet, Image, StatusBar, ToastAndroid, } from "react-native";
+import { View, Text, ScrollView, TextInput, Pressable, StyleSheet, Image, StatusBar, ToastAndroid, ActivityIndicator, } from "react-native";
 import React, { useEffect, useMemo, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import axios from "axios";
@@ -10,6 +10,20 @@ import { RadioGroup } from "react-native-radio-buttons-group";
 const SignUp = ({ navigation }) => {
     const [tglLahir, setTglLahir] = useState('');
     const [tglLahirFormatted, setTglLahirFormatted] = useState('');
+    const [selectedId, setSelectedId] = useState();
+    const [countryData, setCountryData] = useState([]);
+    const [stateData, setStateData] = useState([]);
+    const [country, setCountry] = useState(null);
+    const [state, setState] = useState(null);
+    const [countryId, setCountryId] = useState(null);
+    const [stateId, setStateId] = useState(null);
+    const [isFocus, setIsFocus] = useState(false);
+    const [busana, setToggleCheckBoxBusana] = useState("")
+    const [olahraga, setToggleCheckBoxOlahraga] = useState("")
+    const [hiburan, setToggleCheckBoxHiburan] = useState("")
+    const [petualangan, setToggleCheckBoxPetualangan] = useState("")
+    const minat = [busana, olahraga, hiburan, petualangan];
+    const [isPressed, setIsPressed] = useState(false);
 
     // menampung semua data dari inputan
     const [data, setData] = useState({
@@ -70,30 +84,6 @@ const SignUp = ({ navigation }) => {
         }
     ]), []);
 
-    // menampung data jenis kelamin yang dipilih
-    const [selectedId, setSelectedId] = useState();
-
-
-    // menampung data provinsi serta kota
-    const [countryData, setCountryData] = useState([]);
-    const [stateData, setStateData] = useState([]);
-    const [country, setCountry] = useState(null);
-    const [state, setState] = useState(null);
-    const [countryId, setCountryId] = useState(null);
-    const [stateId, setStateId] = useState(null);
-    const [isFocus, setIsFocus] = useState(false);
-
-    // menampung data minat per satu satu
-    const [busana, setToggleCheckBoxBusana] = useState("")
-    const [olahraga, setToggleCheckBoxOlahraga] = useState("")
-    const [hiburan, setToggleCheckBoxHiburan] = useState("")
-    const [petualangan, setToggleCheckBoxPetualangan] = useState("")
-
-    // menampung data minat keseluruhan yang dipilih
-    const minat = [busana, olahraga, hiburan, petualangan];
-
-    const [isPressed, setIsPressed] = useState(false);
-
     // menampilkan semua data provinsi
     useEffect(() => {
         axios.get('https://golangapi-j5iu.onrender.com/api/member/mobile/provinces')
@@ -139,6 +129,7 @@ const SignUp = ({ navigation }) => {
 
         // cek apakah inputan terisi atau tidak
         if (!data.namaLengkap.trim() || !data.namaPanggilan.trim() || !data.notelpon.trim() || !data.email.trim() || !data.password.trim() || !data.kelamin.trim() || !data.tglLahir.trim() || !data.alamat.trim()) {
+            setIsPressed(false);
             ToastAndroid.show(
                 "Inputan tidak boleh kosong!",
                 ToastAndroid.SHORT
@@ -166,16 +157,17 @@ const SignUp = ({ navigation }) => {
                 );
 
                 // navigasi ke halaman Home
-                navigation.navigate("Home");
+                navigation.replace("Home");
             } else {
+                setIsPressed(false);
                 // alert dengan toast android
                 ToastAndroid.show(
                     "Registrasi Gagal!",
                     ToastAndroid.SHORT
                 );
-                console.log(response.data.responseMessage);
             }
         } catch (error) {
+            setIsPressed(false);
             console.log(error);
         }
 
@@ -394,16 +386,13 @@ const SignUp = ({ navigation }) => {
 
                 <Pressable
                     onPress={() => {
-                        setIsPressed(true); // Set state saat tombol ditekan
-                        handleRegister(); // Panggil fungsi handleRegister saat tombol ditekan
+                        setIsPressed(true);
+                        handleRegister();
                     }}
-                    style={({ pressed }) => [
-                        styles.buttonDaftar,
-                        { backgroundColor: pressed || isPressed ? '#00429F' : '#021D43' }, // Ganti warna saat tombol ditekan
-                    ]}
+                    style={({ pressed }) => [styles.buttonDaftar, { opacity: pressed ? 0.5 : 1 }]}
                 >
                     <Text style={{ textAlign: 'center', color: 'white' }}>
-                        Daftar
+                        {isPressed ? <ActivityIndicator size="small" color="white" /> : 'Daftar'}
                     </Text>
                 </Pressable>
 

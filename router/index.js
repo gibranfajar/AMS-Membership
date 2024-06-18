@@ -34,6 +34,8 @@ import AboutUs from '../app/screens/AboutUs';
 import Bantuan from '../app/screens/Bantuan';
 import FAQ from '../app/screens/FAQ';
 import Chat from '../app/screens/Chat';
+import Gift from '../app/screens/Gift';
+import GiftDetails from '../app/screens/GiftDetails';
 
 
 // Stack Navigator untuk bagian tab Home
@@ -223,6 +225,28 @@ const index = () => {
                         fontWeight: "bold",
                     },
                     headerTitle: "Pusat Bantuan",
+                }} />
+                <Stack.Screen name="Gift" component={Gift} options={{
+                    headerStyle: {
+                        backgroundColor: "#021D43",
+                    },
+                    headerTintColor: "white",
+                    headerTitleAlign: "center",
+                    headerTitleStyle: {
+                        fontWeight: "bold",
+                    },
+                    headerTitle: "Gift",
+                }} />
+                <Stack.Screen name="GiftDetails" component={GiftDetails} options={{
+                    headerStyle: {
+                        backgroundColor: "#021D43",
+                    },
+                    headerTintColor: "white",
+                    headerTitleAlign: "center",
+                    headerTitleStyle: {
+                        fontWeight: "bold",
+                    },
+                    headerTitle: "Gift",
                 }} />
             </Stack.Navigator>
         </NavigationContainer>

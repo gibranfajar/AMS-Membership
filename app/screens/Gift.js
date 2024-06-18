@@ -9,10 +9,10 @@ import axios from 'axios';
 import { Image } from 'expo-image';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const Promo = ({ navigation }) => {
+const Gift = ({ navigation }) => {
     const [isConnected, setIsConnected] = useState(null);
     const [data, setData] = useState(null);
-    const [promoInput, setPromoInput] = useState("");
+    const [giftInput, setgiftInput] = useState("");
     const [isLoading, setIsLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
 
@@ -30,12 +30,12 @@ const Promo = ({ navigation }) => {
 
 
 
-    // fungsi untuk memuat data promo
-    const promo = async () => {
+    // fungsi untuk memuat data gift
+    const gift = async () => {
         try {
             const idMember = await AsyncStorage.getItem('idMember');
-            axios.get(`https://golangapi-j5iu.onrender.com/api/member/mobile/promo/list?id_member=${idMember}`).then((res) => {
-                setData(res.data.promoData)
+            axios.get(`https://golangapi-j5iu.onrender.com/api/member/mobile/gift?id_member=7B0792985D584A5C9BDA85469662C58E`).then((res) => {
+                setData(res.data.giftData)
             }).catch((error) => {
                 console.log(error)
             })
@@ -48,47 +48,47 @@ const Promo = ({ navigation }) => {
     }
 
     useEffect(() => {
-        promo()
+        gift()
     }, []);
 
 
 
     // Fungsi untuk memfilter data
     const filterData = (item) => {
-        if (promoInput === "") {
+        if (giftInput === "") {
             return (
                 <Pressable
                     onPress={() => {
-                        navigation.navigate("PromoDetails", { itemId: item.id });
+                        navigation.navigate("GiftDetails", { itemId: item.ID });
                     }}
                 >
                     <View style={styles.card}>
                         <Image
-                            source={`https://web.amscorp.id:3060/imagestorage/promo/${item.imageUrl}`}
-                            style={styles.promo}
+                            source={`https://web.amscorp.id:3060/imagestorage/gift/${item.imageUrl}`}
+                            style={styles.gift}
                         />
                         <Text style={{ padding: 10, fontSize: 15, fontWeight: "bold" }}>
-                            {item.promoTitle}
+                            {item.giftTitle}
                         </Text>
                     </View>
                 </Pressable>
             )
         }
 
-        if (item.promoTitle.toLowerCase().includes(promoInput.toLowerCase()) || item.promoDetail.toLowerCase().includes(promoInput.toLowerCase()) || item.promoLocation.toLowerCase().includes(promoInput.toLowerCase())) {
+        if (item.giftTitle.toLowerCase().includes(giftInput.toLowerCase()) || item.giftDetail.toLowerCase().includes(giftInput.toLowerCase())) {
             return (
                 <Pressable
                     onPress={() => {
-                        navigation.navigate("PromoDetails", { itemId: item.id });
+                        navigation.navigate("GiftDetails", { itemId: item.ID });
                     }}
                 >
                     <View style={styles.card}>
                         <Image
-                            source={`https://web.amscorp.id:3060/imagestorage/promo/${item.imageUrl}`}
-                            style={styles.promo}
+                            source={`https://web.amscorp.id:3060/imagestorage/gift/${item.imageUrl}`}
+                            style={styles.gift}
                         />
                         <Text style={{ padding: 10, fontSize: 15, fontWeight: "bold" }}>
-                            {item.promoTitle}
+                            {item.giftTitle}
                         </Text>
                     </View>
                 </Pressable>
@@ -98,13 +98,13 @@ const Promo = ({ navigation }) => {
 
 
     const clearInput = () => {
-        setPromoInput('');
+        setgiftInput('');
     };
 
 
     const onRefresh = () => {
         setRefreshing(true);
-        promo();
+        gift();
     };
 
 
@@ -121,26 +121,15 @@ const Promo = ({ navigation }) => {
             <StatusBar backgroundColor={'#021D43'} />
             {isConnected ? (
                 <View style={{ flex: 1 }}>
-                    <View style={styles.container}>
-                        <Image
-                            source={require("../../assets/logowhite.png")}
-                            style={styles.logo}
-                        />
-                        <Pressable
-                            onPress={() => navigation.navigate('Notification')}
-                        >
-                            <FontAwesome6 name='bell' color={'#fff'} size={20} style={{ justifyContent: 'flex-end', alignSelf: 'center' }} />
-                        </Pressable>
-                    </View>
                     <View style={styles.inputContainer}>
                         <Ionicons name="search" size={20} color={'#C3C3C3'} style={styles.searchIcon} />
                         <TextInput
                             placeholder="Search....."
-                            onChangeText={(text) => setPromoInput(text)}
+                            onChangeText={(text) => setgiftInput(text)}
                             style={styles.input}
-                            value={promoInput}
+                            value={giftInput}
                         />
-                        {promoInput.length > 0 && (
+                        {giftInput.length > 0 && (
                             <TouchableOpacity onPress={clearInput} style={styles.closeIconContainer}>
                                 <Ionicons name="close" size={20} color={'#C3C3C3'} />
                             </TouchableOpacity>
@@ -150,7 +139,7 @@ const Promo = ({ navigation }) => {
                     <FlatList
                         showsVerticalScrollIndicator={false}
                         data={data}
-                        keyExtractor={(item) => String(item.id)}
+                        keyExtractor={(item) => String(item.ID)}
                         renderItem={({ item }) => filterData(item)}
                         refreshControl={
                             <RefreshControl
@@ -206,15 +195,15 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         borderColor: "#C3C3C3",
     },
-    promo: {
+    gift: {
         borderTopRightRadius: 8,
         borderTopLeftRadius: 8,
         width: "auto",
-        height: 150,
+        height: 100,
     },
     closeIconContainer: {
         padding: 5,
     },
 });
 
-export default Promo
+export default Gift

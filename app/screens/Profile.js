@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, SafeAreaView, StatusBar, Pressable, ActivityIndicator, Image } from 'react-native'
+import { View, Text, StyleSheet, SafeAreaView, StatusBar, Pressable, ActivityIndicator, Image, ToastAndroid } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { RefreshControl, ScrollView } from 'react-native-gesture-handler';
 import axios from 'axios';
@@ -6,25 +6,17 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import FoundationIcons from '@expo/vector-icons/Foundation';
-import Octicons from '@expo/vector-icons/Octicons';
-import Feather from '@expo/vector-icons/Feather';
+import { Ionicons } from '@expo/vector-icons';
+import * as Clipboard from 'expo-clipboard';
 
 const Profile = ({ navigation }) => {
     const [isConnected, setIsConnected] = useState(null);
-    const [data, setData] = useState();
+    const [data, setData] = useState("");
     const [loading, setLoading] = useState(true);
-
     const [refreshing, setRefreshing] = useState(false);
 
-    const onRefresh = () => {
-        setRefreshing(true);
-        fetchData();
-        setTimeout(() => {
-            setRefreshing(false);
-        }, 2000); // Contoh: Penyegaran palsu selama 2 detik
-    };
 
+    // mengambil informasi koneksi internet
     useEffect(() => {
         const unsubscribe = NetInfo.addEventListener(state => {
             setIsConnected(state.isConnected);
@@ -35,40 +27,35 @@ const Profile = ({ navigation }) => {
         };
     }, []);
 
+
+    // Fungsi untuk memuat data profil
     const fetchData = async () => {
         try {
-            // Ambil token dari penyimpanan lokal (misalnya AsyncStorage)
             const idMember = await AsyncStorage.getItem('idMember');
-
-            // Kirim permintaan HTTP dengan menyertakan token dalam header Authorization
             const response = await axios.get(`https://golangapi-j5iu.onrender.com/api/member/mobile/dashboard/info?id_member=${idMember}`);
-
-            // Set data yang diterima ke dalam state data
             setData(response.data.memberInfoData);
-            setLoading(false);
         } catch (error) {
-            return (
-                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                    <Text>{error.message}</Text>
-                </View>
-            )
+            console.log(error);
+        } finally {
+            setLoading(false);
+            setRefreshing(false);
         }
     };
 
     useEffect(() => {
-        const intervalId = setInterval(fetchData, 1000);
         fetchData();
-        return () => clearInterval(intervalId);
     }, []);
 
-    // Tampilkan indikator loading jika data masih dimuat
-    if (loading) {
-        return (
-            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                <ActivityIndicator size="large" color="#021D43" />
-            </View>
-        );
-    }
+
+    const onRefresh = () => {
+        setRefreshing(true);
+        fetchData();
+    };
+
+    const copyToClipboard = async (text) => {
+        await Clipboard.setStringAsync(text);
+        ToastAndroid.show('Copied to Clipboard', ToastAndroid.SHORT);
+    };
 
     const handleLogout = async () => {
         try {
@@ -78,6 +65,14 @@ const Profile = ({ navigation }) => {
             console.error('Failed to log out', error);
         }
     };
+
+    if (loading) {
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <ActivityIndicator size="large" color="#021D43" />
+            </View>
+        );
+    }
 
     return (
         <SafeAreaView style={{ flex: 1 }}>
@@ -107,7 +102,9 @@ const Profile = ({ navigation }) => {
                             >
                                 {data.namaMember}
                             </Text>
-                            <Text style={{ color: "white" }}>{data.idMember}</Text>
+                            <Pressable onPress={() => copyToClipboard(data.idMember)}>
+                                <Text style={{ color: "white" }}>{data.idMember}</Text>
+                            </Pressable>
                         </View>
                         <Pressable
                             style={{ alignItems: 'center', justifyContent: 'center' }}
@@ -136,7 +133,7 @@ const Profile = ({ navigation }) => {
                         >
                             <View style={styles.list}>
                                 <View style={{ alignItems: "center", flexDirection: "row" }}>
-                                    <FoundationIcons name='clipboard-notes' size={20} color={"#1d1d1d"} />
+                                    <Ionicons name="document-text-outline" size={24} color={'#1d1d1d'} />
                                     <Text style={{ fontSize: 15, marginStart: 10 }}>
                                         Riwayat Transaksi
                                     </Text>
@@ -153,7 +150,7 @@ const Profile = ({ navigation }) => {
                         >
                             <View style={styles.list}>
                                 <View style={{ alignItems: "center", flexDirection: "row" }}>
-                                    <Octicons name='info' size={20} color={"#1d1d1d"} />
+                                    <Ionicons name="information-circle-outline" size={24} color="black" />
                                     <Text style={{ fontSize: 15, marginStart: 10 }}>
                                         Tentang Kami
                                     </Text>
@@ -170,7 +167,7 @@ const Profile = ({ navigation }) => {
                         >
                             <View style={styles.list}>
                                 <View style={{ alignItems: "center", flexDirection: "row" }}>
-                                    <Octicons name='question' size={25} color={"#1d1d1d"} />
+                                    <Ionicons name="help-circle-outline" size={24} color="black" />
                                     <Text style={{ fontSize: 15, marginStart: 10 }}>Bantuan</Text>
                                 </View>
                                 <MaterialIcons name='keyboard-arrow-right' size={25} color={"#1d1d1d"} />
@@ -181,7 +178,7 @@ const Profile = ({ navigation }) => {
                         <Pressable onPress={handleLogout}>
                             <View style={styles.list}>
                                 <View style={{ alignItems: "center", flexDirection: "row" }}>
-                                    <Feather name='log-out' size={20} color={"#1d1d1d"} />
+                                    <Ionicons name="log-out-outline" size={24} color="black" />
                                     <Text style={{ fontSize: 15, marginStart: 10 }}>Logout</Text>
                                 </View>
                                 <MaterialIcons name='keyboard-arrow-right' size={25} color={"#1d1d1d"} />

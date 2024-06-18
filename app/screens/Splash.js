@@ -12,11 +12,11 @@ const Splash = ({ navigation }) => {
             // Cek apakah idMember ada
             if (idMember) {
                 setTimeout(() => {
-                    navigation.navigate('Home');
+                    navigation.replace('Home');
                 }, 2000); // Navigate setelah 2 detik
             } else {
                 setTimeout(() => {
-                    navigation.navigate('Validasi');
+                    navigation.replace('Validasi');
                 }, 2000); // Navigate setelah 2 detik
             }
         } catch (error) {

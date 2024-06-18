@@ -7,8 +7,24 @@ import { Dropdown } from 'react-native-element-dropdown';
 import { RadioGroup } from 'react-native-radio-buttons-group';
 
 const EditProfile = ({ navigation }) => {
-
     const [isPressed, setIsPressed] = useState(false);
+    const [selectedId, setSelectedId] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+    const [countryData, setCountryData] = useState([]);
+    const [stateData, setStateData] = useState([]);
+    const [country, setCountry] = useState(null);
+    const [state, setState] = useState(null);
+    const [countryId, setCountryId] = useState(null);
+    const [stateId, setStateId] = useState(null);
+    const [isFocus, setIsFocus] = useState(false);
+    const [busana, setToggleCheckBoxBusana] = useState("")
+    const [olahraga, setToggleCheckBoxOlahraga] = useState("")
+    const [hiburan, setToggleCheckBoxHiburan] = useState("")
+    const [petualangan, setToggleCheckBoxPetualangan] = useState("")
+    const minat = [busana, olahraga, hiburan, petualangan];
+    const [prov, setProv] = useState(null);
+    const [city, setCity] = useState(null);
 
     const [data, setData] = useState({
         id_member: '',
@@ -21,7 +37,8 @@ const EditProfile = ({ navigation }) => {
         kota: '',
         alamat: '',
         kelamin: '',
-        tglLahir: ''
+        tglLahir: '',
+        minatKategori: '-',
     });
 
     const handleChange = (key, value) => {
@@ -42,64 +59,22 @@ const EditProfile = ({ navigation }) => {
         }
     ]), []);
 
-    // menampung data jenis kelamin yang dipilih
-    const [selectedId, setSelectedId] = useState();
-
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
-
-    // menampung data provinsi serta kota
-    const [countryData, setCountryData] = useState([]);
-    const [stateData, setStateData] = useState([]);
-    const [country, setCountry] = useState(null);
-    const [state, setState] = useState(null);
-    const [countryId, setCountryId] = useState(null);
-    const [stateId, setStateId] = useState(null);
-    const [isFocus, setIsFocus] = useState(false);
-
-    // menampung data minat per satu satu
-    const [busana, setToggleCheckBoxBusana] = useState("")
-    const [olahraga, setToggleCheckBoxOlahraga] = useState("")
-    const [hiburan, setToggleCheckBoxHiburan] = useState("")
-    const [petualangan, setToggleCheckBoxPetualangan] = useState("")
-
-    // menampung data minat keseluruhan yang dipilih
-    const minat = [busana, olahraga, hiburan, petualangan];
-
-    const [prov, setProv] = useState(null);
-    const [city, setCity] = useState(null);
 
     useEffect(() => {
-        // Panggil handleState jika nilai country tidak null
         if (prov) {
             handleState(prov);
         }
     }, [prov]);
 
     useEffect(() => {
-        // Cek nilai data.kelamin dan set selectedId sesuai dengan nilai yang sesuai
-        if (data.kelamin === 'PRIA') {
-            setSelectedId('l');
-        } else if (data.kelamin === 'WANITA') {
-            setSelectedId('p');
-        }
-    }, [data.kelamin]);
-
-
-    useEffect(() => {
-        // Cek apakah ada data provinsi yang dipilih dalam stateData
-        const selectedCountry = countryData.find(item => item.label === data.provinsi);
-        const selectedCity = stateData.find(item => item.label === data.kota);
-
-        // Jika ada, set nilai prov menjadi value dari objek tersebut
+        const selectedCountry = countryData.find(item => item.value === data.provinsi);
+        const selectedCity = stateData.find(item => item.value === data.kota);
         if (selectedCountry) {
             setProv(selectedCountry.value);
         }
-
         if (selectedCity) {
             setCity(selectedCity.value);
         }
-
     }, [countryData, data.provinsi, stateData, data.kota]);
 
 
@@ -145,25 +120,20 @@ const EditProfile = ({ navigation }) => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // Ambil token dari penyimpanan lokal (misalnya AsyncStorage)
                 const idMember = await AsyncStorage.getItem('idMember');
-
-                // Kirim permintaan HTTP dengan menyertakan token dalam header Authorization
                 const response = await axios.get(`https://golangapi-j5iu.onrender.com/api/member/mobile/profile?id_member=${idMember}`);
-
-                // Set data yang diterima ke dalam state data
                 setData({
                     id_member: idMember,
                     namaLengkap: response.data.memberData.nama,
                     namaPanggilan: response.data.memberData.namaPanggilan,
                     notelpon: response.data.memberData.notelpon,
                     email: response.data.memberData.email,
-                    password: '',
-                    provinsi: response.data.memberData.provinsi,
-                    kota: response.data.memberData.kota,
+                    provinsi: response.data.memberData.idProvinsi,
+                    kota: response.data.memberData.idKota,
                     alamat: response.data.memberData.alamat,
-                    kelamin: response.data.memberData.jenisKelamin,
+                    kelamin: response.data.memberData.jenisKelamin === 'PRIA' ? 'l' : 'p',
                     tglLahir: response.data.memberData.tanggalLahir,
+                    minatKategori: '-',
                 });
                 setLoading(false);
             } catch (error) {
@@ -175,37 +145,17 @@ const EditProfile = ({ navigation }) => {
         fetchData();
     }, []);
 
-    // Tampilkan indikator loading jika data masih dimuat
-    if (loading) {
-        return (
-            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                <ActivityIndicator size="large" color="#021D43" />
-            </View>
-        );
-    }
-
-    // Tampilkan pesan kesalahan jika ada kesalahan saat memuat data
-    if (error) {
-        return (
-            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                <Text>{error}</Text>
-            </View>
-        );
-    }
-
     // update data ke backend
     const handleUpdate = async () => {
-
-
         // cek apakah inputan terisi atau tidak
-        if (!data.namaLengkap.trim() || !data.namaPanggilan.trim() || !data.notelpon.trim() || !data.email.trim() || !data.password.trim() || !data.provinsi.trim() || !data.kota.trim() || !data.kelamin.trim() || !data.tglLahir.trim()) {
+        if (!data.namaLengkap.trim() || !data.namaPanggilan.trim() || !data.notelpon.trim() || !data.email.trim() || !data.kelamin.trim() || !data.tglLahir.trim()) {
+            setIsPressed(false);
             ToastAndroid.show(
                 "Inputan tidak boleh kosong!",
                 ToastAndroid.SHORT
             );
             return;
         }
-
 
         let url = "https://golangapi-j5iu.onrender.com/api/member/mobile/profile"
         axios({
@@ -215,6 +165,8 @@ const EditProfile = ({ navigation }) => {
             headers: { "Content-Type": "multipart/form-data" },
         }).then(function (response) {
             if (response.data.responseCode == "2002500") {
+                console.log(response.data);
+                setIsPressed(false);
                 ToastAndroid.show(
                     "Ubah Data Berhasil!",
                     ToastAndroid.SHORT
@@ -222,15 +174,26 @@ const EditProfile = ({ navigation }) => {
                 navigation.navigate("Home");
             } else {
                 console.log(response.data);
+                setIsPressed(false);
                 ToastAndroid.show(
                     "Ubah Data Gagal!",
                     ToastAndroid.SHORT
                 );
             }
         }).catch(function (response) {
-            console.log(response);
+            console.log(response.data);
+            setIsPressed(false);
         });
     };
+
+    // Tampilkan indikator loading jika data masih dimuat
+    if (loading) {
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <ActivityIndicator size="large" color="#021D43" />
+            </View>
+        );
+    }
 
     return (
         <View style={{ flex: 1 }}>
@@ -274,6 +237,7 @@ const EditProfile = ({ navigation }) => {
                         style={styles.input}
                         value={data.notelpon}
                         onChangeText={(text) => handleChange("notelpon", text)}
+                        keyboardType="numeric"
                     />
                 </View>
 
@@ -291,7 +255,6 @@ const EditProfile = ({ navigation }) => {
                     <TextInput
                         style={styles.input}
                         secureTextEntry={true}
-                        value={data.password}
                         onChangeText={(text) => handleChange("password", text)}
                     />
                 </View>
@@ -371,7 +334,7 @@ const EditProfile = ({ navigation }) => {
                                 setSelectedId(selectedId); // Mengatur nilai terpilih
                                 handleChange("kelamin", selectedId); // Menangani perubahan nilai kelamin
                             }}
-                            selectedId={selectedId}
+                            selectedId={data.kelamin}
                             layout="row"
                         />
                     </View>
@@ -381,7 +344,7 @@ const EditProfile = ({ navigation }) => {
                             style={styles.input}
                             value={data.tglLahir}
                             onChangeText={(text) => handleChange("tglLahir", text)}
-                            placeholder="dd/mm/yyyy"
+                            placeholder="yyyy-mm-dd"
                         />
                     </View>
                 </View>
@@ -391,13 +354,10 @@ const EditProfile = ({ navigation }) => {
                         setIsPressed(true);
                         handleUpdate();
                     }}
-                    style={({ pressed }) => [
-                        styles.buttonEdit,
-                        { backgroundColor: pressed || isPressed ? '#00429F' : '#021D43' }, // Ganti warna saat tombol ditekan
-                    ]}
+                    style={({ pressed }) => [styles.buttonEdit, { opacity: pressed ? 0.5 : 1 }]}
                 >
                     <Text style={{ textAlign: "center", color: "white" }}>
-                        Ubah
+                        {isPressed ? <ActivityIndicator size="small" color="white" /> : 'Ubah'}
                     </Text>
                 </Pressable>
             </ScrollView>

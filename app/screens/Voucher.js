@@ -1,46 +1,69 @@
-import {
-    View,
-    Text,
-    Pressable,
-    Modal,
-    Image,
-    StyleSheet,
-    ActivityIndicator,
-} from "react-native";
-import React, { useEffect, useState } from "react";
+import { View, Text, Pressable, Modal, Image, StyleSheet, ActivityIndicator, } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import axios from "axios";
 import { FlatList } from "react-native-gesture-handler";
 import Barcode from '@kichiyaki/react-native-barcode-generator';
 import { Ionicons } from '@expo/vector-icons';
-
+import * as Brightness from 'expo-brightness';
 
 const Voucher = ({ route, navigation }) => {
     const [modalVisible, setModalVisible] = useState(false);
+    const originalBrightness = useRef(null);
     const [List, setList] = useState([]);
     const [data, setData] = useState({});
     const [dataCount, setDataCount] = useState(0);
     const [loading, setLoading] = useState(false);
 
+
+    // fungsi untuk mengambil data voucher
+    const fetchData = async () => {
+        try {
+            const idMember = await AsyncStorage.getItem('idMember');
+            const response = await axios.get(`https://golangapi-j5iu.onrender.com/api/member/mobile/voucher?id_member=${idMember}`);
+            setList(response.data.voucherData);
+            setDataCount(response.data.voucherData.length);
+        } catch (error) {
+            console.log(error)
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
         fetchData();
     }, []);
 
-    const fetchData = async () => {
-        try {
-            // Ambil token dari penyimpanan lokal (misalnya AsyncStorage)
-            const idMember = await AsyncStorage.getItem('idMember');
 
-            const response = await axios.get(`https://golangapi-j5iu.onrender.com/api/member/mobile/voucher?id_member=${idMember}`);
-            setList(response.data.voucherData);
-            setDataCount(response.data.voucherData.length);
-            setLoading(false);
-        } catch (error) {
-            console.log(error)
-        }
-    };
 
+    // fungsi untuk mengatur brightness
+    useEffect(() => {
+        const adjustBrightness = async () => {
+            if (modalVisible) {
+                if (originalBrightness.current === null) {
+                    originalBrightness.current = await Brightness.getBrightnessAsync();
+                }
+                const { status } = await Brightness.requestPermissionsAsync();
+                if (status === 'granted') {
+                    await Brightness.setBrightnessAsync(5);
+                } else {
+                    console.warn("WRITE_SETTINGS permission not granted");
+                }
+            } else {
+                if (originalBrightness.current !== null) {
+                    await Brightness.setBrightnessAsync(originalBrightness.current);
+                    originalBrightness.current = null; // Reset original brightness
+                }
+            }
+        };
+
+        adjustBrightness();
+    }, [modalVisible]);
+
+
+
+    // fungsi untuk menampilkan detail voucher
     const fetchDataById = async (id) => {
         try {
             const idMember = await AsyncStorage.getItem('idMember');
@@ -52,7 +75,12 @@ const Voucher = ({ route, navigation }) => {
         }
     };
 
-    // Tampilkan indikator loading jika data masih dimuat
+
+
+    const formatNumber = (num) => {
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    };
+
     if (loading) {
         return (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -60,7 +88,6 @@ const Voucher = ({ route, navigation }) => {
             </View>
         );
     }
-
 
     return (
         <View style={{ flex: 1, margin: 25 }}>
@@ -124,7 +151,7 @@ const Voucher = ({ route, navigation }) => {
                                             paddingLeft: 15,
                                         }}
                                     >
-                                        <Text style={{ fontSize: 25 }}>Rp. {item.nominal}</Text>
+                                        <Text style={{ fontSize: 25 }}>Rp. {formatNumber(item.nominal)}</Text>
                                         <Text style={{ marginTop: 5 }}>Berlaku Sampai : <Text style={{ color: 'red', fontWeight: '700' }}>{item.tanggalExpired}</Text></Text>
                                     </View>
                                     <View
@@ -135,7 +162,7 @@ const Voucher = ({ route, navigation }) => {
                                             marginVertical: 5,
                                         }}
                                     >
-                                        <Image source={require("../../assets/barcode.png")} />
+                                        <Ionicons name="barcode-outline" size={50} color="black" />
                                         <Text>Tampilkan Barcode</Text>
                                     </View>
                                 </View>

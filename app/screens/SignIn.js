@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView, TextInput, Image, ToastAndroid, Pressable, StatusBar, } from "react-native";
+import { View, Text, StyleSheet, ScrollView, TextInput, Image, ToastAndroid, Pressable, StatusBar, ActivityIndicator, } from "react-native";
 import React, { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -49,8 +49,9 @@ const SignIn = ({ navigation }) => {
                     ToastAndroid.SHORT
                 );
                 // navigasi ke halaman Home
-                navigation.navigate("Home");
+                navigation.replace("Home");
             } else {
+                setIsPressed(false);
                 // alert dengan toast android
                 ToastAndroid.show(
                     "Login Gagal!",
@@ -58,6 +59,7 @@ const SignIn = ({ navigation }) => {
                 );
             }
         } catch (error) {
+            setIsPressed(false);
             console.log(error);
         }
 
@@ -111,13 +113,10 @@ const SignIn = ({ navigation }) => {
                         setIsPressed(true);
                         handleLogin();
                     }}
-                    style={({ pressed }) => [
-                        styles.buttonLogin,
-                        { backgroundColor: pressed || isPressed ? '#00429F' : '#021D43' }, // Ganti warna saat tombol ditekan
-                    ]}
+                    style={({ pressed }) => [styles.buttonLogin, { opacity: pressed ? 0.5 : 1 }]}
                 >
                     <Text style={{ color: 'white', textAlign: 'center' }}>
-                        Login
+                        {isPressed ? <ActivityIndicator size="small" color="white" /> : 'Login'}
                     </Text>
                 </Pressable>
 

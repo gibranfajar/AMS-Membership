@@ -1,4 +1,4 @@
-import { View, Text, StatusBar, StyleSheet, Image, Pressable, Modal, ActivityIndicator, Linking } from 'react-native'
+import { View, Text, StatusBar, StyleSheet, Image, Pressable, Modal, ActivityIndicator, Linking, TouchableOpacity } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { FlatList, RefreshControl, TextInput } from 'react-native-gesture-handler'
@@ -8,28 +8,22 @@ import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Feather } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 
 const Location = ({ navigation }) => {
     const [isConnected, setIsConnected] = useState(null);
+    const [data, setData] = useState({});
+    const [List, setList] = useState([]);
+    const [locationInput, setLocationInput] = useState("");
     const [modalVisible, setModalVisible] = useState(false);
     const [modalFilters, setModalFilters] = useState(false);
-    const [locationInput, setLocationInput] = useState("");
-    const [List, setList] = useState([]);
-    const [data, setData] = useState({});
     const [loading, setLoading] = useState(true);
     const [loadingFilters, setLoadingFilters] = useState(true);
     const [brandFilter, setBrandFilter] = useState("all");
-
     const [refreshing, setRefreshing] = useState(false);
 
-    const onRefresh = () => {
-        setRefreshing(true);
-        locationList();
-        setTimeout(() => {
-            setRefreshing(false);
-        }, 2000); // Contoh: Penyegaran palsu selama 2 detik
-    };
 
+    // fungsi untuk memeriksa koneksi internet
     useEffect(() => {
         const unsubscribe = NetInfo.addEventListener(state => {
             setIsConnected(state.isConnected);
@@ -40,6 +34,8 @@ const Location = ({ navigation }) => {
         };
     }, []);
 
+
+    // fungsi untuk memuat data list location
     const locationList = async () => {
         try {
             const idMember = await AsyncStorage.getItem('idMember');
@@ -52,26 +48,24 @@ const Location = ({ navigation }) => {
                     setList(filterBrand)
                 }
             }).catch((error) => {
-                return (
-                    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                        <Text>{error.message}</Text>
-                    </View>
-                )
+                console.log(error)
             })
         } catch (error) {
             console.log(error)
         } finally {
-            setLoading(false); // Set isLoading menjadi false setelah selesai memuat data
-            setLoadingFilters(false); // Set isLoading menjadi false setelah selesai memuat data
+            setLoading(false);
+            setLoadingFilters(false);
+            setRefreshing(false);
         }
     }
 
     useEffect(() => {
-        const intervalId = setInterval(locationList, 1000);
         locationList();
-        return () => clearInterval(intervalId);
     }, []);
 
+
+
+    // fungsi untuk memuat data list detail
     const fetchDataById = async (id) => {
         try {
             const idMember = await AsyncStorage.getItem('idMember');
@@ -81,14 +75,11 @@ const Location = ({ navigation }) => {
             setData(response.data.storeLocationData);
             setModalVisible(true);
         } catch (error) {
-            return (
-                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                    <Text>{error.message}</Text>
-                </View>
-            )
+            console.log(error);
         }
     };
 
+    // tamplan list
     const layout = (item) => {
         return (
             <View key={item.storeID}>
@@ -126,9 +117,20 @@ const Location = ({ navigation }) => {
         }
     };
 
+
     const closeModal = () => {
         setModalFilters(false);
     };
+
+    const clearInput = () => {
+        setLocationInput('');
+    };
+
+    const onRefresh = () => {
+        setRefreshing(true);
+        locationList();
+    };
+
 
     if (loading) {
         return (
@@ -156,11 +158,20 @@ const Location = ({ navigation }) => {
                     </View>
 
                     <View style={styles.searchContainer}>
-                        <TextInput
-                            placeholder="Search....."
-                            onChangeText={(text) => setLocationInput(text)}
-                            style={styles.searchBar}
-                        />
+                        <View style={styles.inputContainer}>
+                            <Ionicons name="search" size={20} color={'#C3C3C3'} style={styles.searchIcon} />
+                            <TextInput
+                                placeholder="Search....."
+                                onChangeText={(text) => setLocationInput(text)}
+                                style={styles.input}
+                                value={locationInput}
+                            />
+                            {locationInput.length > 0 && (
+                                <TouchableOpacity onPress={clearInput} style={styles.closeIconContainer}>
+                                    <Ionicons name="close" size={20} color={'#C3C3C3'} />
+                                </TouchableOpacity>
+                            )}
+                        </View>
                         <Pressable
                             onPress={() => {
                                 // Implementasi logika filter di sini
@@ -376,12 +387,22 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         margin: 15,
     },
-    searchBar: {
+    inputContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
         borderWidth: 1,
-        borderColor: "#C3C3C3",
-        padding: 5,
+        borderColor: '#C3C3C3',
         borderRadius: 5,
-        flex: 1,
+        flex: 1, // Menyesuaikan agar TextInput bisa mengambil ruang yang tersedia
+    },
+    searchIcon: {
+        marginLeft: 10,
+    },
+    input: {
+        flex: 1, // agar TextInput dapat mengisi sisa ruang yang tersedia
+        paddingVertical: 5,
+        paddingHorizontal: 12,
+        fontSize: 16,
     },
     filterButton: {
         backgroundColor: '#021D43',
@@ -442,6 +463,9 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.25,
         shadowRadius: 4,
         elevation: 5,
+    },
+    closeIconContainer: {
+        padding: 5,
     },
 });
 

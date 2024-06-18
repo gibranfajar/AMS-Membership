@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView, TextInput, Image, ToastAndroid, Pressable, StatusBar, KeyboardAvoidingView } from "react-native";
+import { View, Text, StyleSheet, ScrollView, TextInput, Image, ToastAndroid, Pressable, StatusBar, KeyboardAvoidingView, ActivityIndicator } from "react-native";
 import React, { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -6,6 +6,7 @@ import axios from "axios";
 
 const ValidasiForm = ({ navigation }) => {
     const [isPressed, setIsPressed] = useState(false);
+
     // untuk menampung data dari inputan
     const [data, setData] = useState({
         userAccount: '',
@@ -19,6 +20,7 @@ const ValidasiForm = ({ navigation }) => {
     const handleValidation = async () => {
         // cek apakah inputan terisi atau tidak
         if (!data.userAccount.trim()) {
+            setIsPressed(false);
             ToastAndroid.show(
                 "Inputan tidak boleh kosong!",
                 ToastAndroid.SHORT
@@ -87,8 +89,9 @@ const ValidasiForm = ({ navigation }) => {
                 );
 
                 // navigasi ke halaman Input OTP
-                navigation.navigate("InputOTP", { nohandphone: data.userAccount });
+                navigation.replace("InputOTP", { nohandphone: data.userAccount });
             } else {
+                setIsPressed(false);
                 // alert dengan toast android
                 ToastAndroid.show(
                     "No Handphone Tidak Terdaftar!",
@@ -97,6 +100,7 @@ const ValidasiForm = ({ navigation }) => {
             }
         } catch (error) {
             console.log(error);
+            setIsPressed(false);
         }
     };
 
@@ -141,13 +145,10 @@ const ValidasiForm = ({ navigation }) => {
                             setIsPressed(true);
                             handleValidation();
                         }}
-                        style={({ pressed }) => [
-                            styles.buttonValidasi,
-                            { backgroundColor: pressed || isPressed ? '#00429F' : '#021D43' }, // Ganti warna saat tombol ditekan
-                        ]}
+                        style={({ pressed }) => [styles.buttonValidasi, { opacity: pressed ? 0.5 : 1 }]}
                     >
                         <Text style={{ color: 'white', textAlign: 'center' }}>
-                            Validasi
+                            {isPressed ? <ActivityIndicator size="small" color="white" /> : 'Validasi'}
                         </Text>
                     </Pressable>
                 </ScrollView>

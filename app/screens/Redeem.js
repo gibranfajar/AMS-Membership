@@ -1,50 +1,20 @@
-import { ActivityIndicator, Image, Pressable, StatusBar, StyleSheet, Text, TextInput, View } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import { ActivityIndicator, Image, Pressable, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import React, { useCallback, useEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { FlatList, RefreshControl } from 'react-native-gesture-handler'
-
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
-
+import { Ionicons } from '@expo/vector-icons';
 import NetInfo from '@react-native-community/netinfo';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_URL = "https://golangapi-j5iu.onrender.com/api/member/mobile/voucher/tukar?id_member=7B0792985D584A5C9BDA85469662C58E";
-
 const Redeem = ({ navigation }) => {
     const [isConnected, setIsConnected] = useState(null);
     const [data, setData] = useState(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [redeemInput, setRedeemInput] = useState("");
-
     const [point, setPoint] = useState(0);
-
+    const [redeemInput, setRedeemInput] = useState("");
+    const [isLoading, setIsLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
-
-    const onRefresh = () => {
-        setRefreshing(true);
-        fetchData();
-        setTimeout(() => {
-            setRefreshing(false);
-        }, 2000); // Contoh: Penyegaran palsu selama 2 detik
-    };
-
-    useEffect(() => {
-        const loadPoints = async () => {
-            try {
-                const savedPoints = await AsyncStorage.getItem('userPoints');
-                if (savedPoints !== null) {
-                    setPoint(parseInt(savedPoints, 10));
-                }
-            } catch (error) {
-                console.error('Failed to load points from AsyncStorage', error);
-            }
-        };
-
-        loadPoints();
-    }, []);
-
 
 
     // fungsi untuk memeriksa koneksi internet
@@ -58,6 +28,9 @@ const Redeem = ({ navigation }) => {
         };
     }, []);
 
+
+
+    // Fungsi untuk memuat data promo
     const fetchData = async () => {
         try {
             const idMember = AsyncStorage.getItem('idMember');
@@ -69,6 +42,9 @@ const Redeem = ({ navigation }) => {
             })
         } catch (error) {
             console.log(error);
+        } finally {
+            setIsLoading(false);
+            setRefreshing(false);
         }
     };
 
@@ -76,20 +52,27 @@ const Redeem = ({ navigation }) => {
         fetchData();
     }, []);
 
+
+
+    // Fungsi untuk memuat point
+    const loadPoints = async () => {
+        try {
+            const savedPoints = await AsyncStorage.getItem('userPoints');
+            if (savedPoints !== null) {
+                setPoint(parseInt(savedPoints));
+            }
+        } catch (error) {
+            console.error('Failed to load points from AsyncStorage', error);
+        }
+    };
+
     useEffect(() => {
-        axios.get(API_URL)
-        fetch(API_URL)
-            .then(response => response.json())
-            .then(data => {
-                setData(data.voucherData);
-                setIsLoading(false);
-            })
-            .catch(error => {
-                setError(error);
-                setIsLoading(false);
-            });
+        loadPoints();
     }, []);
 
+
+
+    // Fungsi untuk memfilter data
     const filterData = (item) => {
         const isDisabled = point < item.pointVoucher;
         if (redeemInput === "") {
@@ -107,7 +90,7 @@ const Redeem = ({ navigation }) => {
                             <Text style={{ color: "white", fontSize: 16 }}>Voucher</Text>
                             <Text style={{ color: "yellow" }}>{item.pointVoucher} Point</Text>
                         </View>
-                        <Text style={{ fontSize: 25, padding: 20 }}>Rp. {item.nominal}</Text>
+                        <Text style={{ fontSize: 25, padding: 20 }}>Rp. {formatNumber(item.nominal)}</Text>
                     </View>
                 </Pressable>
             )
@@ -128,12 +111,29 @@ const Redeem = ({ navigation }) => {
                             <Text style={{ color: "white", fontSize: 16 }}>Voucher</Text>
                             <Text style={{ color: "yellow" }}>{item.pointVoucher} Point</Text>
                         </View>
-                        <Text style={{ fontSize: 25, padding: 20 }}>Rp. {item.nominal}</Text>
+                        <Text style={{ fontSize: 25, padding: 20 }}>Rp. {formatNumber(item.nominal)}</Text>
                     </View>
                 </Pressable>
             )
         }
     }
+
+
+
+    const formatNumber = (num) => {
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    };
+
+    const clearInput = () => {
+        setRedeemInput('');
+    };
+
+    const onRefresh = useCallback(() => {
+        setRefreshing(true);
+        fetchData()
+        loadPoints()
+    }, []);
+
 
     if (isLoading) {
         return (
@@ -160,11 +160,20 @@ const Redeem = ({ navigation }) => {
                         </Pressable>
                     </View>
 
-                    <TextInput
-                        placeholder="Search....."
-                        onChangeText={(text) => setRedeemInput(text)}
-                        style={styles.searchBar}
-                    />
+                    <View style={styles.inputContainer}>
+                        <Ionicons name="search" size={20} color={'#C3C3C3'} style={styles.searchIcon} />
+                        <TextInput
+                            placeholder="Search....."
+                            onChangeText={(text) => setRedeemInput(text)}
+                            style={styles.input}
+                            value={redeemInput}
+                        />
+                        {redeemInput.length > 0 && (
+                            <TouchableOpacity onPress={clearInput} style={styles.closeIconContainer}>
+                                <Ionicons name="close" size={20} color={'#C3C3C3'} />
+                            </TouchableOpacity>
+                        )}
+                    </View>
 
                     <FlatList
                         showsVerticalScrollIndicator={false}
@@ -226,6 +235,27 @@ const styles = StyleSheet.create({
     cardDisabled: {
         backgroundColor: '#C3C3C3',  // Ganti warna untuk menunjukkan card ter-disable
         opacity: 0.6,
+    },
+    inputContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#C3C3C3',
+        margin: 15,
+        borderRadius: 5,
+    },
+    searchIcon: {
+        width: 18,
+        height: 24,
+        marginHorizontal: 10,
+    },
+    input: {
+        flex: 1, // agar TextInput dapat mengisi sisa ruang yang tersedia
+        padding: 5,
+        fontSize: 16,
+    },
+    closeIconContainer: {
+        padding: 5,
     },
 });
 

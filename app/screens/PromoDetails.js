@@ -9,6 +9,7 @@ const PromoDetails = ({ route }) => {
     const [itemDetail, setItemDetail] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
 
+    // fungsi untuk memuat detail promo
     const promoDetail = async () => {
         const idMember = await AsyncStorage.getItem("idMember");
         axios.get(`https://golangapi-j5iu.onrender.com/api/member/mobile/promo/detail?id_member=${idMember}&id_promo=${itemId}`).then((res) => {

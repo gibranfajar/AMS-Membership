@@ -6,21 +6,15 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const RiwayatVoucher = ({ navigation }) => {
-
     const [dataVoucher, setDataVoucher] = useState([]);
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(false);
 
-    useEffect(() => {
-        fetchData();
-        fetchDataRiwayat();
-    }, []);
 
+    // Fungsi untuk memuat data riwayat voucher
     const fetchData = async () => {
         try {
-            // Ambil token dari penyimpanan lokal (misalnya AsyncStorage)
             const idMember = await AsyncStorage.getItem('idMember');
-
             const response = await axios.get(`https://golangapi-j5iu.onrender.com/api/member/mobile/voucher?id_member=${idMember}`);
             setDataVoucher(response.data.voucherData.length);
             setLoading(false);
@@ -29,9 +23,9 @@ const RiwayatVoucher = ({ navigation }) => {
         }
     };
 
+    // Fungsi untuk memuat data riwayat
     const fetchDataRiwayat = async () => {
         try {
-            // Ambil token dari penyimpanan lokal (misalnya AsyncStorage)
             const idMember = await AsyncStorage.getItem('idMember');
             const response = await axios.get(`https://golangapi-j5iu.onrender.com/api/member/mobile/voucher/history?id_member=${idMember}`);
             setData(response.data.voucherData);
@@ -41,7 +35,11 @@ const RiwayatVoucher = ({ navigation }) => {
         }
     };
 
-    // Tampilkan indikator loading jika data masih dimuat
+    useEffect(() => {
+        fetchData();
+        fetchDataRiwayat();
+    }, []);
+
     if (loading) {
         return (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -49,7 +47,6 @@ const RiwayatVoucher = ({ navigation }) => {
             </View>
         );
     }
-
 
     return (
         <View style={{ flex: 1, margin: 25 }}>

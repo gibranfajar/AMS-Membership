@@ -6,6 +6,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Network from 'expo-network';
+import { Ionicons } from '@expo/vector-icons';
 
 const RedeemDetails = ({ route, navigation }) => {
     const { voucherCode } = route.params;
@@ -13,11 +14,11 @@ const RedeemDetails = ({ route, navigation }) => {
     const [itemDetail, setItemDetail] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
     const [modalVisible, setModalVisible] = useState(false);
+    const [isPressed, setIsPressed] = useState(false);
 
+    // fungsi untuk memuat data user
     useEffect(() => {
-        // Mengambil token pengguna dari penyimpanan lokal (misalnya AsyncStorage)
         const fetchUser = async () => {
             try {
                 const idMember = await AsyncStorage.getItem('idMember');
@@ -32,14 +33,32 @@ const RedeemDetails = ({ route, navigation }) => {
         fetchUser();
     }, []);
 
-    const handleRedeem = async () => {
-
+    // fungsi untuk memuat data voucher
+    const fetchData = async () => {
         try {
-            // Mengambil token pengguna dari penyimpanan lokal (misalnya AsyncStorage)
-            const idMember = await AsyncStorage.getItem('idMember');
-            // mengambil IP Address pengguna
-            const ipDevice = await Network.getIpAddressAsync();
+            const idMember = AsyncStorage.getItem('idMember');
+            axios.get(`https://golangapi-j5iu.onrender.com/api/member/mobile/voucher/tukar?id_member=${idMember}`).then((res) => {
+                const filteredData = res.data.voucherData.filter(item => item.voucherCode === voucherCode);
+                setItemDetail(filteredData[0]);
+                setIsLoading(false)
+            }).catch((error) => {
+                console.log(error)
+            })
+        } catch (error) {
+            console.log(error);
+        }
+    };
 
+    useEffect(() => {
+        fetchData();
+    }, []);
+
+
+    // fungsi untuk redeem
+    const handleRedeem = async () => {
+        try {
+            const idMember = await AsyncStorage.getItem('idMember');
+            const ipDevice = await Network.getIpAddressAsync();
             let url = "https://golangapi-j5iu.onrender.com/api/member/mobile/voucher/redeem"
             axios({
                 method: "POST",
@@ -52,6 +71,7 @@ const RedeemDetails = ({ route, navigation }) => {
                 headers: { "Content-Type": "multipart/form-data" },
             }).then(function (response) {
                 if (response.data.responseCode == "2002500") {
+                    setIsPressed(false);
                     ToastAndroid.show(
                         "Redeem Berhasil!",
                         ToastAndroid.SHORT
@@ -69,44 +89,20 @@ const RedeemDetails = ({ route, navigation }) => {
                     )
                 }
             }).catch(function (error) {
+                setIsPressed(false);
                 console.log(error);
             });
         } catch (error) {
+            setIsPressed(false);
             console.log(error);
         }
     }
 
-    useEffect(() => {
-        const fetchItemDetail = async () => {
-            const idMember = await AsyncStorage.getItem('idMember');
-            axios.get(`https://golangapi-j5iu.onrender.com/api/member/mobile/voucher/tukar?id_member=${idMember}`).then((res) => {
-                const filteredData = res.data.voucherData.filter(item => item.voucherCode === voucherCode);
-                setItemDetail(filteredData[0]);
-                setIsLoading(false)
-            }).catch((error) => {
-                console.log(error);
-            })
-        }
-        fetchItemDetail();
-    }, []);
+    const formatNumber = (num) => {
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    };
 
-    if (isLoading) {
-        return (
-            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                <ActivityIndicator size="large" color="#021D43" />
-            </View>
-        );
-    }
-
-    if (error) {
-        return (
-            <View style={styles.container}>
-                <Text>Error: {error}</Text>
-            </View>
-        );
-    }
-
-    if (loading) {
+    if (isLoading || loading) {
         return (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
                 <ActivityIndicator size="large" color="#021D43" />
@@ -118,14 +114,14 @@ const RedeemDetails = ({ route, navigation }) => {
         <View style={{ flex: 1, margin: 20 }}>
             <Text style={{ fontSize: 20 }}>
                 Active Points :{" "}
-                <Text style={{ fontWeight: "bold", fontSize: 20 }}>{user.sisaPoint} pts</Text>
+                <Text style={{ fontWeight: "bold", fontSize: 20 }}>{formatNumber(user.sisaPoint)} pts</Text>
             </Text>
             <View style={styles.card}>
                 <View style={styles.topCard}>
                     <Text style={{ color: "white", fontSize: 16 }}>Voucher</Text>
                     <Text style={{ color: "yellow" }}>{itemDetail.pointVoucher} Point</Text>
                 </View>
-                <Text style={{ fontSize: 25, padding: 20 }}>Rp. {itemDetail.nominal}</Text>
+                <Text style={{ fontSize: 25, padding: 20 }}>Rp. {formatNumber(itemDetail.nominal)}</Text>
             </View>
             {/* card */}
             <View style={styles.details}>
@@ -157,22 +153,15 @@ const RedeemDetails = ({ route, navigation }) => {
                 Voucher dapat berlaku untuk pembelian produk distore.
             </Text>
             <Pressable
-                style={styles.submitButton}
-                onPress={handleRedeem}
+                onPress={() => {
+                    setIsPressed(true);
+                    handleRedeem();
+                }}
+                style={({ pressed }) => [styles.buttonRedeem, { opacity: pressed ? 0.5 : 1 }]}
             >
-                <Text
-                    style={{
-                        backgroundColor: "#021D43",
-                        color: "white",
-                        textAlign: "center",
-                        padding: 10,
-                        borderRadius: 25,
-                        fontWeight: "bold",
-                        fontSize: 15,
-                    }}
-                >
-                    Redeem
-                </Text>
+
+                {isPressed ? <ActivityIndicator size="small" color="white" /> : <Text style={{ color: "white", textAlign: "center", fontWeight: "bold", marginVertical: 4 }}>Redeem</Text>}
+
             </Pressable>
 
             {/* modals */}
@@ -223,7 +212,7 @@ const RedeemDetails = ({ route, navigation }) => {
                                         alignItems: "center",
                                     }}
                                 >
-                                    <Text style={{ fontSize: 25, padding: 20 }}>Rp. {itemDetail.nominal}</Text>
+                                    <Text style={{ fontSize: 25, padding: 20 }}>Rp. {formatNumber(itemDetail.nominal)}</Text>
                                     <View
                                         style={{
                                             justifyContent: "center",
@@ -232,7 +221,7 @@ const RedeemDetails = ({ route, navigation }) => {
                                             marginVertical: 5,
                                         }}
                                     >
-                                        <Image source={require("../../assets/barcode.png")} />
+                                        <Ionicons name="barcode-outline" size={50} color="black" />
                                         <Text>Tampilkan Barcode</Text>
                                     </View>
                                 </View>
@@ -241,7 +230,7 @@ const RedeemDetails = ({ route, navigation }) => {
                             <Pressable
                                 style={{ justifyContent: "center", alignItems: "center" }}
                                 onPress={() => {
-                                    navigation.navigate("Voucher");
+                                    navigation.replace("Voucher");
                                 }}
                             >
                                 <Text
@@ -291,12 +280,6 @@ const styles = StyleSheet.create({
         justifyContent: "space-between",
         marginVertical: 5,
     },
-    submitButton: {
-        position: "absolute",
-        bottom: 0,
-        left: 0,
-        right: 0,
-    },
     modalView: {
         top: 100,
         margin: 10,
@@ -312,6 +295,16 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
         elevation: 5,
     },
+    buttonRedeem: {
+        backgroundColor: "#021D43",
+        color: "white",
+        padding: 10,
+        borderRadius: 25,
+        position: "absolute",
+        bottom: 0,
+        left: 0,
+        right: 0,
+    }
 });
 
 export default RedeemDetails;
