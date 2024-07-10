@@ -10,40 +10,40 @@ const InputOTP = ({ navigation, route }) => {
     const [code, setCode] = useState(['', '', '', '', '', '']);
     const inputs = useRef([]);
 
-    useEffect(() => {
-        // Cek apakah semua TextInput terisi
-        const isAllFilled = code.every((digit) => digit !== '');
+    // useEffect(() => {
+    //     // Cek apakah semua TextInput terisi
+    //     const isAllFilled = code.every((digit) => digit !== '');
 
-        if (isAllFilled) {
-            // Jika semua TextInput terisi, jalankan handleVerify setelah 5 detik
-            const timeout = setTimeout(() => {
-                handleVerify();
-            }, 2000);
+    //     if (isAllFilled) {
+    //         // Jika semua TextInput terisi, jalankan handleVerify setelah 5 detik
+    //         const timeout = setTimeout(() => {
+    //             handleVerify();
+    //         }, 2000);
 
-            // Hapus timeout jika komponen di-unmount atau jika terjadi perubahan pada kode
-            return () => clearTimeout(timeout);
-        }
-    }, [code]); // Efek akan dijalankan ketika ada perubahan pada kode
+    //         // Hapus timeout jika komponen di-unmount atau jika terjadi perubahan pada kode
+    //         return () => clearTimeout(timeout);
+    //     }
+    // }, [code]); // Efek akan dijalankan ketika ada perubahan pada kode
 
 
-    useEffect(() => {
-        const loadOtp = async () => {
-            // Add a 3-second delay before fetching OTP from AsyncStorage
-            setTimeout(async () => {
-                const initialOtp = await AsyncStorage.getItem('otp');
-                if (initialOtp && typeof initialOtp === 'string') {
-                    const otpArray = initialOtp.split('');
-                    setCode(otpArray);
-                    otpArray.forEach((digit, index) => {
-                        if (digit && inputs.current[index]) {
-                            inputs.current[index].focus();
-                        }
-                    });
-                }
-            }, 2000);
-        };
-        loadOtp();
-    }, []);
+    // useEffect(() => {
+    //     const loadOtp = async () => {
+    //         // Add a 3-second delay before fetching OTP from AsyncStorage
+    //         setTimeout(async () => {
+    //             const initialOtp = await AsyncStorage.getItem('otp');
+    //             if (initialOtp && typeof initialOtp === 'string') {
+    //                 const otpArray = initialOtp.split('');
+    //                 setCode(otpArray);
+    //                 otpArray.forEach((digit, index) => {
+    //                     if (digit && inputs.current[index]) {
+    //                         inputs.current[index].focus();
+    //                     }
+    //                 });
+    //             }
+    //         }, 2000);
+    //     };
+    //     loadOtp();
+    // }, []);
 
     const handleInputChange = (text, index) => {
         const newCode = [...code];
@@ -168,7 +168,7 @@ const InputOTP = ({ navigation, route }) => {
                     </Text>
 
                     <Text style={styles.message}>
-                        Kami telah mengirimkan SMS dengan kode ke nomor Anda{'\n'}
+                        Kami telah mengirimkan Pesan dengan kode ke nomor Anda{'\n'}
                         Silakan tulis kode di bawah ini dan tekan tombol Kirim.
                     </Text>
 
@@ -188,9 +188,9 @@ const InputOTP = ({ navigation, route }) => {
                     </View>
 
                     <Text style={styles.resendText}>
-                        Anda belum menerima kodenya?{' '}
+                        Anda belum menerima kode?{' '}
                         <Text style={styles.resendLink} onPress={handleResendCode}>
-                            Kirim Ulang!
+                            Kirim ulang!
                         </Text>
                     </Text>
 
@@ -224,25 +224,24 @@ const styles = StyleSheet.create({
         height: 50,
     },
     image: {
-        marginVertical: 40,
+        marginTop: 40,
         width: 200,
         height: 200,
     },
     title: {
-        fontSize: 24,
+        fontSize: 20,
         textAlign: "center",
-        marginVertical: 10,
-        fontWeight: "bold",
+        marginBottom: 20,
     },
     message: {
-        fontSize: 16,
+        fontSize: 12,
         textAlign: 'center',
-        marginBottom: 32,
+        marginBottom: 28,
     },
     form: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 16,
+        justifyContent: 'center',
+        marginBottom: 14,
     },
     input: {
         width: 40,
@@ -257,6 +256,7 @@ const styles = StyleSheet.create({
     resendText: {
         textAlign: 'center',
         marginBottom: 16,
+        fontSize: 12,
     },
     resendLink: {
         color: '#0000FF',
@@ -266,7 +266,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#021D43",
         color: "white",
         textAlign: "center",
-        padding: 10,
+        padding: 8,
         borderRadius: 25,
         marginHorizontal: 80,
     }

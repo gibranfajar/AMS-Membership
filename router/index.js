@@ -144,7 +144,7 @@ const index = () => {
                         headerTitleStyle: {
                             fontWeight: "bold",
                         },
-                        headerTitle: "Edit Profile",
+                        headerTitle: "Profil",
                     }} />
                 <Stack.Screen name="RiwayatTransaksi" component={RiwayatTransaksiScreen}
                     options={{
@@ -168,7 +168,7 @@ const index = () => {
                         headerTitleStyle: {
                             fontWeight: "bold",
                         },
-                        headerTitle: "Notification",
+                        headerTitle: "Notifikasi",
                     }} />
                 <Stack.Screen name="NotificationDetails" component={NotificationDetailsScreen}
                     options={{
@@ -180,7 +180,7 @@ const index = () => {
                         headerTitleStyle: {
                             fontWeight: "bold",
                         },
-                        headerTitle: "Notification",
+                        headerTitle: "Notifikasi",
                     }} />
                 <Stack.Screen name="AboutUs" component={AboutUs} options={{
                     headerStyle: {
@@ -235,7 +235,7 @@ const index = () => {
                     headerTitleStyle: {
                         fontWeight: "bold",
                     },
-                    headerTitle: "Gift",
+                    headerTitle: "Hadiah",
                 }} />
                 <Stack.Screen name="GiftDetails" component={GiftDetails} options={{
                     headerStyle: {
@@ -246,7 +246,7 @@ const index = () => {
                     headerTitleStyle: {
                         fontWeight: "bold",
                     },
-                    headerTitle: "Gift",
+                    headerTitle: "Hadiah",
                 }} />
             </Stack.Navigator>
         </NavigationContainer>

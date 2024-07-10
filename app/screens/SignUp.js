@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, TextInput, Pressable, StyleSheet, Image, StatusBar, ToastAndroid, ActivityIndicator, } from "react-native";
+import { View, Text, ScrollView, TextInput, Pressable, StyleSheet, Image, StatusBar, ToastAndroid, ActivityIndicator, Button, } from "react-native";
 import React, { useEffect, useMemo, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import axios from "axios";
@@ -6,6 +6,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Dropdown } from "react-native-element-dropdown";
 import Checkbox from "expo-checkbox";
 import { RadioGroup } from "react-native-radio-buttons-group";
+import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
+import RNDateTimePicker from "@react-native-community/datetimepicker";
+import { Feather } from '@expo/vector-icons';
 
 const SignUp = ({ navigation }) => {
     const [tglLahir, setTglLahir] = useState('');
@@ -24,6 +27,38 @@ const SignUp = ({ navigation }) => {
     const [petualangan, setToggleCheckBoxPetualangan] = useState("")
     const minat = [busana, olahraga, hiburan, petualangan];
     const [isPressed, setIsPressed] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+
+    const [show, setShow] = useState(false);
+    const [date, setDate] = useState(new Date());
+
+    const formatDate = (date) => {
+        const day = date.getDate().toString().padStart(2, '0');
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const year = date.getFullYear();
+        return `${year}-${month}-${day}`;
+    };
+
+    const onChange = (event, selectedDate) => {
+        const currentDate = selectedDate || date;
+        setShow(false);
+        setDate(currentDate);
+        setData({ ...data, tglLahir: formatDate(currentDate) });
+    };
+
+    const showMode = (currentMode) => {
+        DateTimePickerAndroid.open({
+            value: date,
+            onChange,
+            mode: currentMode,
+            is24Hour: true,
+        });
+    };
+
+    const showDatepicker = () => {
+        setShow(true);
+        showMode('date');
+    };
 
     // menampung semua data dari inputan
     const [data, setData] = useState({
@@ -44,31 +79,9 @@ const SignUp = ({ navigation }) => {
         setData({ ...data, [key]: value })
     }
 
-    // untuk menerima data dari inputan
-    const handleChangetglLahir = (text) => {
-        // Hapus semua karakter non-digit
-        const cleanedValue = text.replace(/\D/g, '');
-
-        // Format tanggal dengan menambahkan dash setiap dua karakter
-        let formattedDate = '';
-        for (let i = 0; i < cleanedValue.length; i++) {
-            if (i === 2 || i === 4) {
-                formattedDate += '-';
-            }
-            formattedDate += cleanedValue[i];
-        }
-
-        // Set state tglLahirFormatted dengan format yang sesuai
-        setTglLahirFormatted(formattedDate);
-
-        // Jika jumlah karakter sesuai dengan format, simpan dalam state tglLahir
-        if (cleanedValue.length === 8) {
-            const yyyyMMdd = formattedDate.split('-').reverse().join('-');
-            setTglLahir(yyyyMMdd);
-            handleChange('tglLahir', yyyyMMdd);
-        }
+    const toggleShowPassword = () => {
+        setShowPassword(!showPassword);
     };
-
 
     // menampung data jenis kelamin
     const radioButtons = useMemo(() => ([
@@ -128,7 +141,7 @@ const SignUp = ({ navigation }) => {
 
 
         // cek apakah inputan terisi atau tidak
-        if (!data.namaLengkap.trim() || !data.namaPanggilan.trim() || !data.notelpon.trim() || !data.email.trim() || !data.password.trim() || !data.kelamin.trim() || !data.tglLahir.trim() || !data.alamat.trim()) {
+        if (!data.namaLengkap.trim() || !data.namaPanggilan.trim() || !data.notelpon.trim() || !data.email.trim() || !data.password.trim() || !data.kelamin.trim() || !data.alamat.trim()) {
             setIsPressed(false);
             ToastAndroid.show(
                 "Inputan tidak boleh kosong!",
@@ -149,20 +162,59 @@ const SignUp = ({ navigation }) => {
             if (response.data.responseMessage == "success") {
                 // menyimpan idMember ke local storage
                 AsyncStorage.setItem('idMember', response.data.memberData.idMember);
+                const randomNumber = Math.floor(Math.random() * 900000) + 100000;
+
+                await AsyncStorage.setItem('otp', randomNumber.toString());
+
+                // kirim OTP melalui API Qiscus
+                const sendOTP = await axios.post('https://omnichannel.qiscus.com/whatsapp/v1/dmvzl-wfbfx3bo5bbzrj1/3384/messages/', {
+                    to: data.notelpon, // gunakan nomor telepon dari data
+                    type: "template",
+                    template: {
+                        namespace: "7a2ceabe_e950_4283_82ac_5909ac117bf6",
+                        name: "otpmember_1",
+                        language: {
+                            policy: "deterministic",
+                            code: "id"
+                        },
+                        components: [
+                            {
+                                type: "body",
+                                parameters: [
+                                    { type: "text", text: randomNumber.toString() }
+                                ]
+                            },
+                            {
+                                type: "button",
+                                sub_type: "url",
+                                index: 0,
+                                parameters: [
+                                    { type: "text", text: randomNumber.toString() }
+                                ]
+                            }
+                        ]
+                    }
+                }, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Qiscus-App-Id': 'dmvzl-wfbfx3bo5bbzrj1',
+                        'Qiscus-Secret-Key': '27a6859bc8065575a3a135408e262e6e'
+                    }
+                });
 
                 // alert dengan toast android
                 ToastAndroid.show(
-                    "Registrasi Berhasil!",
+                    "Daftar Berhasil!",
                     ToastAndroid.SHORT
                 );
 
-                // navigasi ke halaman Home
-                navigation.replace("Home");
+                // navigasi ke halaman Input OTP
+                navigation.replace("InputOTP", { nohandphone: data.notelpon });
             } else {
                 setIsPressed(false);
                 // alert dengan toast android
                 ToastAndroid.show(
-                    "Registrasi Gagal!",
+                    "Daftar Gagal!",
                     ToastAndroid.SHORT
                 );
             }
@@ -188,7 +240,7 @@ const SignUp = ({ navigation }) => {
             <ScrollView showsVerticalScrollIndicator={false}>
 
                 <Text style={styles.title} >
-                    Sign Up
+                    Daftar
                 </Text>
 
                 <View style={styles.form}>
@@ -197,7 +249,7 @@ const SignUp = ({ navigation }) => {
                         style={styles.input}
                         value={data.namaLengkap}
                         onChangeText={(text) => handleChange("namaLengkap", text)}
-                        placeholder="Masukkan Nama Lengkap"
+                        placeholder="Johan Saputra"
                     />
                 </View>
 
@@ -207,7 +259,7 @@ const SignUp = ({ navigation }) => {
                         style={styles.input}
                         value={data.namaPanggilan}
                         onChangeText={(text) => handleChange("namaPanggilan", text)}
-                        placeholder="Masukkan Nama Panggilan"
+                        placeholder="Johan"
                     />
                 </View>
 
@@ -217,7 +269,7 @@ const SignUp = ({ navigation }) => {
                         style={styles.input}
                         value={data.notelpon}
                         onChangeText={(text) => handleChange("notelpon", text)}
-                        placeholder="Masukkan No Handphone"
+                        placeholder="08123xxxxx"
                         keyboardType="number-pad"
                     />
                 </View>
@@ -228,19 +280,24 @@ const SignUp = ({ navigation }) => {
                         style={styles.input}
                         value={data.email}
                         onChangeText={(text) => handleChange("email", text)}
-                        placeholder="Masukkan Email"
+                        placeholder="Johan@gmail.com"
                     />
                 </View>
 
                 <View style={styles.form}>
                     <Text>Password</Text>
-                    <TextInput
-                        style={styles.input}
-                        secureTextEntry={true}
-                        value={data.password}
-                        onChangeText={(text) => handleChange("password", text)}
-                        placeholder="Masukkan Password"
-                    />
+                    <View style={styles.input}>
+                        <TextInput
+                            style={{ flex: 1 }}
+                            secureTextEntry={!showPassword} // Use state to toggle visibility
+                            value={data.password}
+                            onChangeText={(text) => handleChange("password", text)}
+                            placeholder="**********"
+                        />
+                        <Pressable onPress={toggleShowPassword}>
+                            <Feather name={showPassword ? "eye" : "eye-off"} size={16} color="black" />
+                        </Pressable>
+                    </View>
                 </View>
 
                 <View style={styles.inputCols}>
@@ -306,13 +363,13 @@ const SignUp = ({ navigation }) => {
                         style={styles.input}
                         value={data.alamat}
                         onChangeText={(text) => handleChange("alamat", text)}
-                        placeholder="Masukkan Alamat"
+                        placeholder="Jl. Merdeka No. 123, Jakarta"
                     />
                 </View>
 
                 <View style={styles.inputCols}>
-                    <View style={styles.form}>
-                        <Text>Kelamin</Text>
+                    <View>
+                        <Text style={{ marginBottom: 5, marginLeft: 10, marginTop: 15 }}>Kelamin</Text>
                         <RadioGroup
                             radioButtons={radioButtons}
                             onPress={(selectedId) => {
@@ -325,14 +382,10 @@ const SignUp = ({ navigation }) => {
                     </View>
                     <View style={styles.form}>
                         <Text>Tanggal Lahir</Text>
-                        <TextInput
-                            style={styles.input}
-                            value={tglLahirFormatted}
-                            onChangeText={handleChangetglLahir}
-                            placeholder="dd-mm-yyyy"
-                            keyboardType="numeric"
-                            maxLength={10} // Maksimal panjang input adalah 10 karakter (dd-mm-yyyy)
-                        />
+                        <Text onPress={showDatepicker} style={{ borderBottomColor: '#C3C3C3', borderBottomWidth: 1, paddingVertical: 10 }}>{formatDate(date)}</Text>
+                        {show && (
+                            <RNDateTimePicker mode="date" value={date} />
+                        )}
                     </View>
                 </View>
 
@@ -411,10 +464,9 @@ const styles = StyleSheet.create({
         height: 50,
     },
     title: {
-        fontSize: 24,
+        fontSize: 20,
         textAlign: "center",
         marginVertical: 10,
-        fontWeight: "bold",
     },
     form: {
         flex: 1,
@@ -422,7 +474,12 @@ const styles = StyleSheet.create({
         marginVertical: 15,
     },
     input: {
-        borderBottomWidth: 1, borderBottomColor: "#C3C3C3"
+        borderBottomWidth: 1,
+        borderBottomColor: "#C3C3C3",
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginTop: 10,
     },
     inputCols: {
         flexDirection: "row", justifyContent: "space-between"

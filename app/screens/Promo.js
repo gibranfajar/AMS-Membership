@@ -67,7 +67,7 @@ const Promo = ({ navigation }) => {
                             source={`https://web.amscorp.id:3060/imagestorage/promo/${item.imageUrl}`}
                             style={styles.promo}
                         />
-                        <Text style={{ padding: 10, fontSize: 15, fontWeight: "bold" }}>
+                        <Text style={{ padding: 10, fontSize: 14 }}>
                             {item.promoTitle}
                         </Text>
                     </View>
@@ -87,7 +87,7 @@ const Promo = ({ navigation }) => {
                             source={`https://web.amscorp.id:3060/imagestorage/promo/${item.imageUrl}`}
                             style={styles.promo}
                         />
-                        <Text style={{ padding: 10, fontSize: 15, fontWeight: "bold" }}>
+                        <Text style={{ padding: 10, fontSize: 14 }}>
                             {item.promoTitle}
                         </Text>
                     </View>
@@ -129,13 +129,13 @@ const Promo = ({ navigation }) => {
                         <Pressable
                             onPress={() => navigation.navigate('Notification')}
                         >
-                            <FontAwesome6 name='bell' color={'#fff'} size={20} style={{ justifyContent: 'flex-end', alignSelf: 'center' }} />
+                            <FontAwesome6 name='bell' color={'#fff'} size={20} style={{ justifyContent: 'flex-end', alignSelf: 'center', marginHorizontal: 10 }} />
                         </Pressable>
                     </View>
                     <View style={styles.inputContainer}>
                         <Ionicons name="search" size={20} color={'#C3C3C3'} style={styles.searchIcon} />
                         <TextInput
-                            placeholder="Search....."
+                            placeholder="Cari....."
                             onChangeText={(text) => setPromoInput(text)}
                             style={styles.input}
                             value={promoInput}
@@ -172,7 +172,7 @@ const Promo = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flexDirection: 'row',
-        padding: 10,
+        padding: 13,
         justifyContent: 'space-between',
         alignItems: 'center',
         backgroundColor: '#021D43'

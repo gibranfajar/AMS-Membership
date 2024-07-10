@@ -1,34 +1,37 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Text, View, Platform } from 'react-native';
+import Route from './router/index';
+import { useState, useEffect, useRef } from 'react';
+import { Platform } from 'react-native';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
-import axios from 'axios';
-
-import Route from './router/index';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
-    shouldPlaySound: true,
+    shouldPlaySound: false,
     shouldSetBadge: false,
   }),
 });
 
+
 export default function App() {
-  const [notification, setNotification] = useState(false);
   const notificationListener = useRef();
   const responseListener = useRef();
 
   useEffect(() => {
     registerForPushNotificationsAsync().then(token => {
-      AsyncStorage.setItem('ExpoPushToken', token);
+      if (token) {
+        AsyncStorage.setItem('tokenDevice', token);
+        console.log('Push token:', token);
+      } else {
+        console.log('Failed to get push token');
+      }
     });
 
-    notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
-      setNotification(notification);
-    });
+    if (Platform.OS === 'android') {
+      Notifications.getNotificationChannelsAsync().then(value => setChannels(value ?? []));
+    }
 
     responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
       console.log(response);
@@ -72,6 +75,9 @@ async function registerForPushNotificationsAsync() {
       alert('Failed to get push token for push notification!');
       return;
     }
+    // Learn more about projectId:
+    // https://docs.expo.dev/push-notifications/push-notifications-setup/#configure-projectid
+    // EAS projectId is used here.
     try {
       const projectId =
         Constants?.expoConfig?.extra?.eas?.projectId ?? Constants?.easConfig?.projectId;
@@ -83,7 +89,7 @@ async function registerForPushNotificationsAsync() {
           projectId,
         })
       ).data;
-      console.log(token);
+      console.log('Expo push token:', token);
     } catch (e) {
       token = `${e}`;
     }
@@ -93,4 +99,3 @@ async function registerForPushNotificationsAsync() {
 
   return token;
 }
-

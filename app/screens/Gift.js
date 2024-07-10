@@ -2,7 +2,6 @@ import { ActivityIndicator, Pressable, StatusBar, StyleSheet, Text, TextInput, T
 import React, { useEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { FlatList, RefreshControl } from 'react-native-gesture-handler'
-import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import { Ionicons } from '@expo/vector-icons';
 import NetInfo from '@react-native-community/netinfo';
 import axios from 'axios';
@@ -34,7 +33,7 @@ const Gift = ({ navigation }) => {
     const gift = async () => {
         try {
             const idMember = await AsyncStorage.getItem('idMember');
-            axios.get(`https://golangapi-j5iu.onrender.com/api/member/mobile/gift?id_member=7B0792985D584A5C9BDA85469662C58E`).then((res) => {
+            axios.get(`https://golangapi-j5iu.onrender.com/api/member/mobile/gift?id_member=${idMember}`).then((res) => {
                 setData(res.data.giftData)
             }).catch((error) => {
                 console.log(error)
@@ -67,7 +66,7 @@ const Gift = ({ navigation }) => {
                             source={`https://web.amscorp.id:3060/imagestorage/gift/${item.imageUrl}`}
                             style={styles.gift}
                         />
-                        <Text style={{ padding: 10, fontSize: 15, fontWeight: "bold" }}>
+                        <Text style={{ padding: 10, fontSize: 14 }}>
                             {item.giftTitle}
                         </Text>
                     </View>
@@ -124,7 +123,7 @@ const Gift = ({ navigation }) => {
                     <View style={styles.inputContainer}>
                         <Ionicons name="search" size={20} color={'#C3C3C3'} style={styles.searchIcon} />
                         <TextInput
-                            placeholder="Search....."
+                            placeholder="Cari....."
                             onChangeText={(text) => setgiftInput(text)}
                             style={styles.input}
                             value={giftInput}
@@ -136,18 +135,24 @@ const Gift = ({ navigation }) => {
                         )}
                     </View>
 
-                    <FlatList
-                        showsVerticalScrollIndicator={false}
-                        data={data}
-                        keyExtractor={(item) => String(item.ID)}
-                        renderItem={({ item }) => filterData(item)}
-                        refreshControl={
-                            <RefreshControl
-                                refreshing={refreshing}
-                                onRefresh={onRefresh}
-                            />
-                        }
-                    />
+                    {!data ? (
+                        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                            <Text>Kamu tidak memiliki hadiah</Text>
+                        </View>
+                    ) : (
+                        <FlatList
+                            showsVerticalScrollIndicator={false}
+                            data={data}
+                            keyExtractor={(item) => String(item.ID)}
+                            renderItem={({ item }) => filterData(item)}
+                            refreshControl={
+                                <RefreshControl
+                                    refreshing={refreshing}
+                                    onRefresh={onRefresh}
+                                />
+                            }
+                        />
+                    )}
                 </View>
             ) : (
                 <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>

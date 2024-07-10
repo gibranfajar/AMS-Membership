@@ -1,4 +1,4 @@
-import { View, Text, StatusBar, StyleSheet, Image, Pressable, Modal, ActivityIndicator, Linking, TouchableOpacity } from 'react-native'
+import { View, Text, StatusBar, StyleSheet, Image, Pressable, Modal, ActivityIndicator, TouchableOpacity } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { FlatList, RefreshControl, TextInput } from 'react-native-gesture-handler'
@@ -9,10 +9,12 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Feather } from '@expo/vector-icons';
 import { Ionicons } from '@expo/vector-icons';
+import { WebView } from 'react-native-webview'
 
-const Location = ({ navigation }) => {
+
+export default function Location({ navigation }) {
     const [isConnected, setIsConnected] = useState(null);
-    const [data, setData] = useState({});
+    const [data, setData] = useState([]);
     const [List, setList] = useState([]);
     const [locationInput, setLocationInput] = useState("");
     const [modalVisible, setModalVisible] = useState(false);
@@ -21,6 +23,7 @@ const Location = ({ navigation }) => {
     const [loadingFilters, setLoadingFilters] = useState(true);
     const [brandFilter, setBrandFilter] = useState("all");
     const [refreshing, setRefreshing] = useState(false);
+    const [htmlContent, setHtmlContent] = useState(null);
 
 
     // fungsi untuk memeriksa koneksi internet
@@ -68,6 +71,7 @@ const Location = ({ navigation }) => {
     // fungsi untuk memuat data list detail
     const fetchDataById = async (id) => {
         try {
+            setLoading(true);
             const idMember = await AsyncStorage.getItem('idMember');
             const response = await axios.get(
                 `https://golangapi-j5iu.onrender.com/api/member/mobile/location/detail?id_member=${idMember}&id_store=${id}`
@@ -76,6 +80,8 @@ const Location = ({ navigation }) => {
             setModalVisible(true);
         } catch (error) {
             console.log(error);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -85,7 +91,7 @@ const Location = ({ navigation }) => {
             <View key={item.storeID}>
                 <Pressable onPress={() => fetchDataById(item.storeID)}>
                     <View style={styles.list}>
-                        <Text style={{ fontSize: 15 }}>{item.brand} {item.kota}</Text>
+                        <Text style={{ fontSize: 14 }}>{item.brand} {item.kota}</Text>
                         <MaterialIcons name='keyboard-arrow-right' size={25} color={"#1d1d1d"} />
                     </View>
                 </Pressable>
@@ -131,6 +137,43 @@ const Location = ({ navigation }) => {
         locationList();
     };
 
+    useEffect(() => {
+        if (data.mapStoreUrl) {
+            // Mengambil URL dari data
+            const encodedHTML = data.mapStoreUrl;
+
+            // Fungsi untuk mendekode HTML entities
+            const decodeHTMLEntities = (html) => {
+                return html.replace(/&lt;/g, '<')
+                    .replace(/&gt;/g, '>')
+                    .replace(/&amp;/g, '&')
+                    .replace(/&quot;/g, '"')
+                    .replace(/&#039;/g, "'");
+            };
+
+            // Decode HTML entities
+            const decodedHTML = decodeHTMLEntities(encodedHTML);
+
+            // Bungkus decodedHTML dalam template HTML yang sederhana
+            const content = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        </head>
+        <body>
+          ${decodedHTML}
+        </body>
+        </html>
+      `;
+
+            setHtmlContent(content);
+            setLoading(false);
+        } else {
+            setLoading(true);
+        }
+    }, [data.mapStoreUrl]);
+
 
     if (loading) {
         return (
@@ -153,7 +196,7 @@ const Location = ({ navigation }) => {
                         <Pressable
                             onPress={() => navigation.navigate('Notification')}
                         >
-                            <FontAwesome6 name='bell' color={'#fff'} size={20} style={{ justifyContent: 'flex-end', alignSelf: 'center' }} />
+                            <FontAwesome6 name='bell' color={'#fff'} size={20} style={{ justifyContent: 'flex-end', alignSelf: 'center', marginHorizontal: 10 }} />
                         </Pressable>
                     </View>
 
@@ -161,7 +204,7 @@ const Location = ({ navigation }) => {
                         <View style={styles.inputContainer}>
                             <Ionicons name="search" size={20} color={'#C3C3C3'} style={styles.searchIcon} />
                             <TextInput
-                                placeholder="Search....."
+                                placeholder="Cari....."
                                 onChangeText={(text) => setLocationInput(text)}
                                 style={styles.input}
                                 value={locationInput}
@@ -204,12 +247,12 @@ const Location = ({ navigation }) => {
                                     </Pressable>
                                 </View>
                                 <View style={{ marginHorizontal: 5 }}>
-                                    <Text style={styles.modalText}>Select Brand</Text>
+                                    <Text style={styles.modalText}>Pilih Brand</Text>
                                     <Pressable style={styles.filterOption} onPress={() => {
                                         setBrandFilter('all');
                                         closeModal(); // Panggil fungsi untuk menutup modal di sini
                                     }}>
-                                        <Text style={styles.filterOptionText}>All</Text>
+                                        <Text style={styles.filterOptionText}>Semua</Text>
                                     </Pressable>
                                     <Pressable style={styles.filterOption} onPress={() => {
                                         locationList();
@@ -267,7 +310,7 @@ const Location = ({ navigation }) => {
                             setModalVisible(!modalVisible);
                         }}
                     >
-                        <Pressable style={{ flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.5)' }} onPress={() => setModalVisible(!modalVisible)}>
+                        <Pressable style={{ flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
                             <View style={styles.modalView}>
                                 <Pressable
                                     style={{ marginBottom: 5 }}
@@ -280,8 +323,15 @@ const Location = ({ navigation }) => {
                                         source={require("../../assets/maps.png")}
                                         style={styles.maps}
                                     /> */}
+                                    <View style={styles.containerMaps}>
+                                        <WebView
+                                            originWhitelist={['*']}
+                                            source={{ html: htmlContent }}
+                                            style={{ flex: 1 }}
+                                        />
+                                    </View>
                                     <Text
-                                        style={{ fontWeight: "bold", fontSize: 20, marginVertical: 15 }}
+                                        style={{ fontSize: 16, marginVertical: 15 }}
                                     >
                                         {data.brand} {data.kota}
                                     </Text>
@@ -291,32 +341,32 @@ const Location = ({ navigation }) => {
                                             borderBottomWidth: StyleSheet.hairlineWidth,
                                         }}
                                     />
-                                    <Text style={{ marginVertical: 15, fontWeight: "bold" }}>
+                                    <Text style={{ marginVertical: 14 }}>
                                         Alamat
                                     </Text>
-                                    <Text style={{ marginBottom: 15 }}>
+                                    <Text style={{ marginBottom: 12, fontSize: 12, color: "#a1a1a1" }}>
                                         {data.storeAddress}
                                     </Text>
-                                    <Pressable
+                                    {/* <Pressable
                                         onPress={() => Linking.openURL(data.mapStoreUrl)}
                                         style={{ marginBottom: 15, textDecorationLine: "underline" }}
                                     >
                                         <Text>
                                             Berikan petunjuk arah
                                         </Text>
-                                    </Pressable>
-                                    <Text style={{ marginBottom: 15 }}>{data.noTelpon}</Text>
+                                    </Pressable> */}
+                                    <Text style={{ marginBottom: 12 }}>{data.noTelpon}</Text>
                                     <View
                                         style={{
                                             borderBottomColor: "black",
                                             borderBottomWidth: StyleSheet.hairlineWidth,
                                         }}
                                     />
-                                    <Text style={{ fontWeight: "bold", marginVertical: 15 }}>
+                                    <Text style={{ marginTop: 14, marginBottom: 5 }}>
                                         Jam toko
                                     </Text>
-                                    <Text style={{ marginVertical: 1 }}>Senin - Sabtu</Text>
-                                    <Text style={{ marginVertical: 1, marginBottom: 10 }}>
+                                    <Text style={{ marginVertical: 1, color: "#a1a1a1" }}>Senin - Sabtu</Text>
+                                    <Text style={{ marginVertical: 1, marginBottom: 10, color: "#a1a1a1" }}>
                                         10:00 - 22:00
                                     </Text>
                                 </View>
@@ -360,10 +410,14 @@ const Location = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flexDirection: "row",
-        padding: 10,
+        padding: 13,
         justifyContent: "space-between",
         alignItems: "center",
         backgroundColor: "#021D43",
+    },
+    containerMaps: {
+        width: '100%',
+        height: 210,
     },
     logo: {
         width: 100,
@@ -416,7 +470,7 @@ const styles = StyleSheet.create({
         borderBottomColor: '#ccc',
     },
     filterOptionText: {
-        fontSize: 16,
+        fontSize: 14,
     },
     maps: {
         borderRadius: 5,
@@ -468,6 +522,3 @@ const styles = StyleSheet.create({
         padding: 5,
     },
 });
-
-
-export default Location

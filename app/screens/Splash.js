@@ -56,14 +56,14 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     logo: {
-        width: 220,
-        height: 85,
+        width: 210,
+        height: 80,
     },
     text: {
-        fontSize: 30,
+        fontSize: 16,
         textAlign: 'center',
         bottom: 35,
-        letterSpacing: 10,
+        letterSpacing: 12,
         color: '#54585A',
     }
 });

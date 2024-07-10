@@ -5,6 +5,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { Dropdown } from 'react-native-element-dropdown';
 import { RadioGroup } from 'react-native-radio-buttons-group';
+import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
+import RNDateTimePicker from "@react-native-community/datetimepicker";
+import { Feather } from '@expo/vector-icons';
 
 const EditProfile = ({ navigation }) => {
     const [isPressed, setIsPressed] = useState(false);
@@ -25,6 +28,37 @@ const EditProfile = ({ navigation }) => {
     const minat = [busana, olahraga, hiburan, petualangan];
     const [prov, setProv] = useState(null);
     const [city, setCity] = useState(null);
+    const [show, setShow] = useState(false);
+    const [date, setDate] = useState(new Date());
+    const [showPassword, setShowPassword] = useState(false);
+
+    const formatDate = (date) => {
+        const day = date.getDate().toString().padStart(2, '0');
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const year = date.getFullYear();
+        return `${year}-${month}-${day}`;
+    };
+
+    const onChange = (event, selectedDate) => {
+        const currentDate = selectedDate || date;
+        setShow(false);
+        setDate(currentDate);
+        setData({ ...data, tglLahir: formatDate(currentDate) });
+    };
+
+    const showMode = (currentMode) => {
+        DateTimePickerAndroid.open({
+            value: date,
+            onChange,
+            mode: currentMode,
+            is24Hour: true,
+        });
+    };
+
+    const showDatepicker = () => {
+        setShow(true);
+        showMode('date');
+    };
 
     const [data, setData] = useState({
         id_member: '',
@@ -45,16 +79,20 @@ const EditProfile = ({ navigation }) => {
         setData({ ...data, [key]: value });
     };
 
+    const toggleShowPassword = () => {
+        setShowPassword(!showPassword);
+    };
+
     // menampung data jenis kelamin
     const radioButtons = useMemo(() => ([
         {
             id: 'l',
-            label: 'Pria',
+            label: 'Male',
             value: 'l'
         },
         {
             id: 'p',
-            label: 'Wanita',
+            label: 'Female',
             value: 'p'
         }
     ]), []);
@@ -139,6 +177,8 @@ const EditProfile = ({ navigation }) => {
             } catch (error) {
                 setError(error.message);
                 setLoading(false);
+            } finally {
+                setLoading(false);
             }
         };
 
@@ -197,28 +237,33 @@ const EditProfile = ({ navigation }) => {
 
     return (
         <View style={{ flex: 1 }}>
-            <View style={styles.head}>
-                <Pressable
-                    onPress={() => {
-                        navigation.navigate("EditProfile");
-                    }}
-                >
-                    <Image
-                        source={require("../../assets/profile.png")}
-                        style={styles.profile}
-                    />
-                </Pressable>
-            </View>
             <ScrollView
                 showsVerticalScrollIndicator={false}
-                style={{ marginVertical: 10 }}
             >
+                <View style={styles.head}>
+                    <Pressable
+                        onPress={() => {
+                            navigation.navigate("EditProfile");
+                        }}
+                    >
+                        <Image
+                            source={require("../../assets/profile.png")}
+                            style={styles.profile}
+                        />
+                    </Pressable>
+                </View>
+
+
+
+
+
                 <View style={styles.form}>
                     <Text>Nama Lengkap</Text>
                     <TextInput
                         style={styles.input}
                         value={data.namaLengkap}
                         onChangeText={(text) => handleChange("namaLengkap", text)}
+                        placeholder="Johan Saputra"
                     />
                 </View>
 
@@ -228,6 +273,7 @@ const EditProfile = ({ navigation }) => {
                         style={styles.input}
                         value={data.namaPanggilan}
                         onChangeText={(text) => handleChange("namaPanggilan", text)}
+                        placeholder="Johan"
                     />
                 </View>
 
@@ -237,7 +283,8 @@ const EditProfile = ({ navigation }) => {
                         style={styles.input}
                         value={data.notelpon}
                         onChangeText={(text) => handleChange("notelpon", text)}
-                        keyboardType="numeric"
+                        placeholder="08123xxxxx"
+                        keyboardType="number-pad"
                     />
                 </View>
 
@@ -247,16 +294,25 @@ const EditProfile = ({ navigation }) => {
                         style={styles.input}
                         value={data.email}
                         onChangeText={(text) => handleChange("email", text)}
+                        placeholder="Johan@gmail.com"
                     />
                 </View>
 
                 <View style={styles.form}>
                     <Text>Password</Text>
-                    <TextInput
-                        style={styles.input}
-                        secureTextEntry={true}
-                        onChangeText={(text) => handleChange("password", text)}
-                    />
+                    <View style={styles.input}>
+                        <TextInput
+                            style={{ flex: 1 }}
+                            secureTextEntry={!showPassword} // Use state to toggle visibility
+                            value={data.password}
+                            onChangeText={(text) => handleChange("password", text)}
+                            placeholder="**********"
+                        />
+                        <Pressable onPress={toggleShowPassword}>
+                            <Feather name={showPassword ? "eye" : "eye-off"} size={16} color="black" />
+                        </Pressable>
+                    </View>
+                    <Text style={{ color: "red", marginVertical: 5, fontStyle: "italic", fontSize: 12 }}>Isi kata sandi jika ingin diubah.</Text>
                 </View>
 
                 <View style={styles.inputCols}>
@@ -322,12 +378,13 @@ const EditProfile = ({ navigation }) => {
                         style={styles.input}
                         value={data.alamat}
                         onChangeText={(text) => handleChange("alamat", text)}
+                        placeholder="Jl. Merdeka No. 123, Jakarta"
                     />
                 </View>
 
                 <View style={styles.inputCols}>
-                    <View style={styles.form}>
-                        <Text>Kelamin</Text>
+                    <View>
+                        <Text style={{ marginBottom: 5, marginLeft: 22, marginTop: 15 }}>Jenis kelamin</Text>
                         <RadioGroup
                             radioButtons={radioButtons}
                             onPress={(selectedId) => {
@@ -336,16 +393,15 @@ const EditProfile = ({ navigation }) => {
                             }}
                             selectedId={data.kelamin}
                             layout="row"
+                            containerStyle={{ marginLeft: 12 }}
                         />
                     </View>
                     <View style={styles.form}>
                         <Text>Tanggal Lahir</Text>
-                        <TextInput
-                            style={styles.input}
-                            value={data.tglLahir}
-                            onChangeText={(text) => handleChange("tglLahir", text)}
-                            placeholder="yyyy-mm-dd"
-                        />
+                        <Text onPress={showDatepicker} style={{ borderBottomColor: '#C3C3C3', borderBottomWidth: 1, paddingVertical: 10 }}>{formatDate(date)}</Text>
+                        {show && (
+                            <RNDateTimePicker mode="date" value={date} />
+                        )}
                     </View>
                 </View>
 
@@ -388,7 +444,10 @@ const styles = StyleSheet.create({
         marginVertical: 15,
     },
     input: {
-        borderBottomWidth: 1, borderBottomColor: "#C3C3C3"
+        borderBottomWidth: 1, borderBottomColor: "#C3C3C3",
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
     },
     inputCols: {
         flexDirection: "row", justifyContent: "space-between"
@@ -421,6 +480,7 @@ const styles = StyleSheet.create({
         padding: 10,
         borderRadius: 25,
         marginHorizontal: 80,
+        marginBottom: 20
     }
 });
 

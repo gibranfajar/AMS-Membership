@@ -24,6 +24,50 @@ const PromoDetails = ({ route }) => {
         promoDetail();
     }, [itemId]);
 
+    const formatDate = (dateString) => {
+        // Input validation
+        if (!dateString || typeof dateString !== "string") {
+            return "Invalid date";
+        }
+
+        let parts = dateString.split("/");
+        if (parts.length !== 3) {
+            return "Invalid date format. Please use dd/mm/yyyy";
+        }
+
+        let day = parseInt(parts[0], 10);
+        let month = parseInt(parts[1], 10);
+        let year = parseInt(parts[2], 10);
+
+        if (isNaN(day) || isNaN(month) || isNaN(year)) {
+            return "Invalid date components";
+        }
+
+        let dateObj = new Date(year, month - 1, day);
+
+        let monthNames = [
+            "Januari",
+            "Februari",
+            "Maret",
+            "April",
+            "Mei",
+            "Juni",
+            "Juli",
+            "Agustus",
+            "September",
+            "Oktober",
+            "November",
+            "Desember",
+        ];
+
+        let monthName = monthNames[dateObj.getMonth()];
+        let formattedYear = dateObj.getFullYear();
+
+        let formattedDate = `${day} ${monthName} ${formattedYear}`;
+
+        return formattedDate;
+    };
+
     if (isLoading) {
         return (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -39,20 +83,20 @@ const PromoDetails = ({ route }) => {
                 style={styles.promo}
             />
             <View style={{ marginVertical: 20 }}>
-                <Text style={{ fontSize: 20, fontWeight: "bold", textAlign: "center" }}>
+                <Text style={{ fontSize: 16, textAlign: "center" }}>
                     {itemDetail.promoTitle}
                 </Text>
-                <Text style={{ textAlign: "center", marginVertical: 10 }}>
+                <Text style={{ textAlign: "center", marginVertical: 20, fontSize: 14 }}>
                     {itemDetail.promoDetail}
                 </Text>
-                <Text style={{ textAlign: "center", fontWeight: "bold" }}>
-                    Lokasi : {itemDetail.promoLocation}
+                <Text style={{ textAlign: "center", fontSize: 14 }}>
+                    Lokasi: {itemDetail.promoLocation}
                 </Text>
                 <View
                     style={{
                         borderBottomColor: "black",
                         borderBottomWidth: StyleSheet.hairlineWidth,
-                        marginVertical: 10,
+                        marginVertical: 20,
                     }}
                 />
                 <View
@@ -62,8 +106,8 @@ const PromoDetails = ({ route }) => {
                         justifyContent: "space-between",
                     }}
                 >
-                    <Text>Berlaku Sampai</Text>
-                    <Text>{itemDetail.promoEndDate}</Text>
+                    <Text style={{ fontSize: 14 }}>Berlaku hingga</Text>
+                    <Text style={{ fontSize: 14, color: "#a1a1a1" }}>{formatDate(itemDetail.promoEndDate)}</Text>
                 </View>
             </View>
         </View>

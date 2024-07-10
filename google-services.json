@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "764348179544",
+    "project_id": "membership-33ae3",
+    "storage_bucket": "membership-33ae3.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:764348179544:android:378492991603200beb162d",
+        "android_client_info": {
+          "package_name": "com.kingofcoding.crmmembership"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAOzuLiTyKEpiNZsO7BzMU8iNF5yviZ1Os"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:764348179544:android:13434a566af63e59eb162d",
+        "android_client_info": {
+          "package_name": "com.kingofcoding.pushnotif"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAOzuLiTyKEpiNZsO7BzMU8iNF5yviZ1Os"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

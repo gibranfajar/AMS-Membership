@@ -1,6 +1,6 @@
-import { View, Text, StyleSheet, Pressable, TouchableOpacity } from 'react-native'
+import { View, Text, StyleSheet, Pressable, TouchableOpacity, ActivityIndicator } from 'react-native'
 import React, { useEffect, useState } from 'react'
-import { FlatList, ScrollView, TextInput } from 'react-native-gesture-handler';
+import { FlatList, TextInput } from 'react-native-gesture-handler';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import RiwayatDetail from './RiwayatDetail'
 import axios from 'axios';
@@ -11,6 +11,7 @@ const Riwayat = () => {
     const [status, setStatus] = React.useState('');
     const [List, setList] = useState([])
     const [riwayatInput, setRiwayatInput] = useState('');
+    const [loading, setLoading] = useState(true);
 
 
     // fungsi untuk memuat data riwayat
@@ -25,12 +26,61 @@ const Riwayat = () => {
                 })
             } catch (error) {
                 console.log(error);
+            } finally {
+                setLoading(false);
             }
         }
 
         fetchData();
     }, []);
 
+    const formatDate = (dateString) => {
+        // Input validation
+        if (!dateString || typeof dateString !== "string") {
+            return "Invalid date";
+        }
+
+        let parts = dateString.split("/");
+        if (parts.length !== 3) {
+            return "Invalid date format. Please use dd/mm/yyyy";
+        }
+
+        let day = parseInt(parts[0], 10);
+        let month = parseInt(parts[1], 10);
+        let year = parseInt(parts[2], 10);
+
+        if (isNaN(day) || isNaN(month) || isNaN(year)) {
+            return "Invalid date components";
+        }
+
+        let dateObj = new Date(year, month - 1, day);
+
+        let monthNames = [
+            "Januari",
+            "Februari",
+            "Maret",
+            "April",
+            "Mei",
+            "Juni",
+            "Juli",
+            "Agustus",
+            "September",
+            "Oktober",
+            "November",
+            "Desember",
+        ];
+
+        let monthName = monthNames[dateObj.getMonth()];
+        let formattedYear = dateObj.getFullYear();
+
+        let formattedDate = `${day} ${monthName} ${formattedYear}`;
+
+        return formattedDate;
+    };
+
+    const formatNumber = (num) => {
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    };
 
     // fungsi untuk menampilkan data riwayat
     const layout = (item) => {
@@ -40,15 +90,15 @@ const Riwayat = () => {
             >
                 <View style={styles.list}>
                     <View>
-                        <Text style={{ fontSize: 15, fontWeight: "bold", marginBottom: 5 }}>
+                        <Text style={{ fontSize: 14, marginBottom: 3 }}>
                             {item.invoice}
                         </Text>
-                        <Text>{item.tanggalTransksi}</Text>
+                        <Text style={{ fontSize: 12, color: "#a1a1a1" }}>{formatDate(item.tanggalTransksi)}</Text>
                     </View>
                     <View style={{ flexDirection: "row", alignItems: "center" }}>
                         <View style={{ alignItems: "flex-end", marginEnd: 5 }}>
-                            <Text style={{ fontSize: 15, fontWeight: "bold", marginBottom: 5 }}>Total</Text>
-                            <Text>{item.total}</Text>
+                            <Text style={{ fontSize: 14, marginBottom: 3 }}>Total</Text>
+                            <Text style={{ fontSize: 12, color: "#a1a1a1" }}>{formatNumber(item.total)}</Text>
                         </View>
                         <MaterialIcons name='keyboard-arrow-right' size={20} color={"#1d1d1d"} />
                     </View>
@@ -73,14 +123,21 @@ const Riwayat = () => {
         setRiwayatInput('');
     };
 
+    if (loading === true) {
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <ActivityIndicator size="large" color="#021D43" />
+            </View>
+        );
+    }
+
+
     return (
         <View style={styles.container}>
-
-
             <View style={styles.inputContainer}>
                 <Ionicons name="search" size={20} color={'#C3C3C3'} style={styles.searchIcon} />
                 <TextInput
-                    placeholder="Search....."
+                    placeholder="Cari....."
                     onChangeText={(text) => setRiwayatInput(text)}
                     style={styles.input}
                     value={riwayatInput}
@@ -92,14 +149,19 @@ const Riwayat = () => {
                 )}
             </View>
 
+            {!List ? (
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                    <Text>Tidak ada riwayat transaksi</Text>
+                </View>
+            ) : (
 
-
-            <FlatList
-                showsVerticalScrollIndicator={false}
-                data={List}
-                keyExtractor={(item) => String(item.id)}
-                renderItem={({ item, index }) => filterData(item)}
-            />
+                <FlatList
+                    showsVerticalScrollIndicator={false}
+                    data={List}
+                    keyExtractor={(item) => String(item.id)}
+                    renderItem={({ item, index }) => filterData(item)}
+                />
+            )}
             {status && <RiwayatDetail setStatus={setStatus} status={status} />}
         </View>
     )

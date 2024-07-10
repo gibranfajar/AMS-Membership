@@ -3,10 +3,12 @@ import React, { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
+import { Feather } from '@expo/vector-icons';
 
 const SignIn = ({ navigation }) => {
 
     const [isPressed, setIsPressed] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
     // menampung data dari inputan
     const [data, setData] = useState({
         user: '',
@@ -18,6 +20,10 @@ const SignIn = ({ navigation }) => {
         setData({ ...data, [key]: value });
     };
 
+    const toggleShowPassword = () => {
+        setShowPassword(!showPassword);
+    };
+
     // menjalankan tombol login
     const handleLogin = async () => {
 
@@ -27,6 +33,9 @@ const SignIn = ({ navigation }) => {
                 "Inputan tidak boleh kosong!",
                 ToastAndroid.SHORT
             );
+            setTimeout(() => {
+                setIsPressed(false);
+            }, 2000);
             return;
         }
 
@@ -45,7 +54,7 @@ const SignIn = ({ navigation }) => {
                 AsyncStorage.setItem('idMember', response.data.loginData.idMember);
                 // alert dengan toast android
                 ToastAndroid.show(
-                    "Login Berhasil!",
+                    "Berhasil!",
                     ToastAndroid.SHORT
                 );
                 // navigasi ke halaman Home
@@ -54,7 +63,7 @@ const SignIn = ({ navigation }) => {
                 setIsPressed(false);
                 // alert dengan toast android
                 ToastAndroid.show(
-                    "Login Gagal!",
+                    "Gagal!",
                     ToastAndroid.SHORT
                 );
             }
@@ -84,28 +93,33 @@ const SignIn = ({ navigation }) => {
                 </View>
 
                 <Text style={styles.title}>
-                    Login
+                    Masuk
                 </Text>
 
                 <View style={styles.form}>
-                    <Text>User</Text>
+                    <Text>Pengguna</Text>
                     <TextInput
                         style={styles.input}
                         value={data.user}
                         onChangeText={(text) => handleChange('user', text)}
-                        placeholder="Masukkan Email / No Handphone"
+                        placeholder="user@gmail.com / 081234567890"
                     />
                 </View>
 
                 <View style={styles.form}>
-                    <Text>Password</Text>
-                    <TextInput
-                        style={styles.input}
-                        secureTextEntry={true}
-                        value={data.password}
-                        onChangeText={(text) => handleChange('password', text)}
-                        placeholder="Masukkan Password"
-                    />
+                    <Text>Kata sandi</Text>
+                    <View style={styles.input}>
+                        <TextInput
+                            style={{ flex: 1 }}
+                            secureTextEntry={!showPassword} // Use state to toggle visibility
+                            value={data.password}
+                            onChangeText={(text) => handleChange("password", text)}
+                            placeholder="**********"
+                        />
+                        <Pressable onPress={toggleShowPassword}>
+                            <Feather name={showPassword ? "eye" : "eye-off"} size={16} color="black" />
+                        </Pressable>
+                    </View>
                 </View>
 
                 <Pressable
@@ -116,7 +130,7 @@ const SignIn = ({ navigation }) => {
                     style={({ pressed }) => [styles.buttonLogin, { opacity: pressed ? 0.5 : 1 }]}
                 >
                     <Text style={{ color: 'white', textAlign: 'center' }}>
-                        {isPressed ? <ActivityIndicator size="small" color="white" /> : 'Login'}
+                        {isPressed ? <ActivityIndicator size="small" color="white" /> : 'Masuk'}
                     </Text>
                 </Pressable>
 
@@ -141,23 +155,28 @@ const styles = StyleSheet.create({
         height: 200,
     },
     title: {
-        fontSize: 24,
+        fontSize: 20,
         textAlign: "center",
-        marginVertical: 10,
-        fontWeight: "bold",
+        marginBottom: 10,
     },
     form: {
         marginHorizontal: 10,
         marginVertical: 15,
     },
     input: {
-        borderBottomWidth: 1, borderBottomColor: "#C3C3C3"
+        borderBottomWidth: 1,
+        borderBottomColor: "#C3C3C3",
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginVertical: 10,
+
     },
     buttonLogin: {
         backgroundColor: "#021D43",
         color: "white",
         textAlign: "center",
-        padding: 10,
+        padding: 8,
         borderRadius: 25,
         marginHorizontal: 80,
     }

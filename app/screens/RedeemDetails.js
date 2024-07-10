@@ -36,8 +36,7 @@ const RedeemDetails = ({ route, navigation }) => {
     // fungsi untuk memuat data voucher
     const fetchData = async () => {
         try {
-            const idMember = AsyncStorage.getItem('idMember');
-            axios.get(`https://golangapi-j5iu.onrender.com/api/member/mobile/voucher/tukar?id_member=${idMember}`).then((res) => {
+            axios.get(`https://golangapi-j5iu.onrender.com/api/member/mobile/voucher/tukar`).then((res) => {
                 const filteredData = res.data.voucherData.filter(item => item.voucherCode === voucherCode);
                 setItemDetail(filteredData[0]);
                 setIsLoading(false)
@@ -102,6 +101,51 @@ const RedeemDetails = ({ route, navigation }) => {
         return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
     };
 
+    const formatDate = (dateString) => {
+        // Input validation
+        if (!dateString || typeof dateString !== "string") {
+            return "Invalid date";
+        }
+
+        let parts = dateString.split("/");
+        if (parts.length !== 3) {
+            return "Invalid date format. Please use dd/mm/yyyy";
+        }
+
+        let day = parseInt(parts[0], 10);
+        let month = parseInt(parts[1], 10);
+        let year = parseInt(parts[2], 10);
+
+        if (isNaN(day) || isNaN(month) || isNaN(year)) {
+            return "Invalid date components";
+        }
+
+        let dateObj = new Date(year, month - 1, day);
+
+        let monthNames = [
+            "Januari",
+            "Februari",
+            "Maret",
+            "April",
+            "Mei",
+            "Juni",
+            "Juli",
+            "Agustus",
+            "September",
+            "Oktober",
+            "November",
+            "Desember",
+        ];
+
+        let monthName = monthNames[dateObj.getMonth()];
+        let formattedYear = dateObj.getFullYear();
+
+        let formattedDate = `${day} ${monthName} ${formattedYear}`;
+
+        return formattedDate;
+    };
+
+
     if (isLoading || loading) {
         return (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -112,45 +156,47 @@ const RedeemDetails = ({ route, navigation }) => {
 
     return (
         <View style={{ flex: 1, margin: 20 }}>
-            <Text style={{ fontSize: 20 }}>
-                Active Points :{" "}
-                <Text style={{ fontWeight: "bold", fontSize: 20 }}>{formatNumber(user.sisaPoint)} pts</Text>
+            <Text style={{ fontSize: 16 }}>
+                Poin Aktif:{" "}
+                <Text style={{ fontWeight: "bold", fontSize: 16 }}>{formatNumber(user.sisaPoint)} poin</Text>
             </Text>
             <View style={styles.card}>
                 <View style={styles.topCard}>
-                    <Text style={{ color: "white", fontSize: 16 }}>Voucher</Text>
-                    <Text style={{ color: "yellow" }}>{itemDetail.pointVoucher} Point</Text>
+                    <Text style={{ color: "white", fontSize: 14 }}>Voucher</Text>
+                    <Text style={{ fontSize: 12, color: "yellow", fontWeight: "bold" }}>{itemDetail.pointVoucher} Poin</Text>
                 </View>
-                <Text style={{ fontSize: 25, padding: 20 }}>Rp. {formatNumber(itemDetail.nominal)}</Text>
+                <Text style={{ fontSize: 20, padding: 20 }}>Rp {formatNumber(itemDetail.nominal)}</Text>
             </View>
             {/* card */}
             <View style={styles.details}>
                 <Text>Voucher</Text>
-                <Text>{itemDetail.nominal}</Text>
+                <Text style={{ color: "#a1a1a1" }}>{formatNumber(itemDetail.nominal)}</Text>
             </View>
             <View style={styles.details}>
-                <Text>Points</Text>
-                <Text>{itemDetail.pointVoucher} pts</Text>
+                <Text>Poin</Text>
+                <Text style={{ color: "#a1a1a1" }}>{itemDetail.pointVoucher}</Text>
             </View>
             <View style={styles.details}>
-                <Text>Berlaku Sampai</Text>
-                <Text>{itemDetail.toDate}</Text>
+                <Text>Berlaku hingga</Text>
+                <Text style={{ color: "#a1a1a1" }}>{formatDate(itemDetail.toDate)}</Text>
             </View>
             <View
                 style={{
                     borderBottomColor: "black",
                     borderBottomWidth: StyleSheet.hairlineWidth,
                     marginVertical: 5,
+                    marginBottom: 10,
+                    marginTop: 20,
                 }}
             />
             <View
-                style={{ flexDirection: "row", alignItems: "center", marginBottom: 10 }}
+                style={{ flexDirection: "row", alignItems: "center", marginVertical: 10 }}
             >
                 <Octicons name='info' color={'#1d1d1d'} size={20} style={{ marginEnd: 5 }} />
-                <Text style={{ fontSize: 15, fontWeight: "bold" }}>Information</Text>
+                <Text style={{ fontSize: 16 }}>Informasi</Text>
             </View>
-            <Text>
-                Voucher dapat berlaku untuk pembelian produk distore.
+            <Text style={{ color: "#a1a1a1", fontSize: 14 }}>
+                Voucher dapat berlaku untuk pembelian produk distore terdekat.
             </Text>
             <Pressable
                 onPress={() => {
@@ -160,7 +206,7 @@ const RedeemDetails = ({ route, navigation }) => {
                 style={({ pressed }) => [styles.buttonRedeem, { opacity: pressed ? 0.5 : 1 }]}
             >
 
-                {isPressed ? <ActivityIndicator size="small" color="white" /> : <Text style={{ color: "white", textAlign: "center", fontWeight: "bold", marginVertical: 4 }}>Redeem</Text>}
+                {isPressed ? <ActivityIndicator size="small" color="white" /> : <Text style={{ color: "white", textAlign: "center", fontWeight: "bold" }}>Redeem</Text>}
 
             </Pressable>
 
@@ -186,24 +232,24 @@ const RedeemDetails = ({ route, navigation }) => {
                             <Text
                                 style={{
                                     fontWeight: "bold",
-                                    fontSize: 24,
+                                    fontSize: 20,
                                     marginVertical: 15,
                                     textAlign: "center",
                                 }}
                             >
-                                Selamat!!!
+                                Selamat!
                             </Text>
                             <Text
-                                style={{ marginTop: 5, marginBottom: 15, textAlign: "center" }}
+                                style={{ marginTop: 5, marginBottom: 15, textAlign: "center", fontSize: 14 }}
                             >
                                 Anda berhasil menukarkan{" "}
-                                <Text style={{ fontWeight: "bold" }}>{itemDetail.pointVoucher}</Text> point dengan
+                                <Text style={{ fontWeight: "bold", fontSize: 14 }}>{itemDetail.pointVoucher}</Text> poin dengan
                                 voucher senilai
                             </Text>
                             {/* card */}
                             <View style={styles.card}>
                                 <View style={styles.topCard}>
-                                    <Text style={{ color: "white", fontSize: 16 }}>Voucher</Text>
+                                    <Text style={{ color: "white", fontSize: 14 }}>Voucher</Text>
                                 </View>
                                 <View
                                     style={{
@@ -212,7 +258,7 @@ const RedeemDetails = ({ route, navigation }) => {
                                         alignItems: "center",
                                     }}
                                 >
-                                    <Text style={{ fontSize: 25, padding: 20 }}>Rp. {formatNumber(itemDetail.nominal)}</Text>
+                                    <Text style={{ fontSize: 20, padding: 20 }}>Rp {formatNumber(itemDetail.nominal)}</Text>
                                     <View
                                         style={{
                                             justifyContent: "center",
@@ -221,8 +267,8 @@ const RedeemDetails = ({ route, navigation }) => {
                                             marginVertical: 5,
                                         }}
                                     >
-                                        <Ionicons name="barcode-outline" size={50} color="black" />
-                                        <Text>Tampilkan Barcode</Text>
+                                        <Ionicons name="barcode-outline" size={30} color="black" />
+                                        <Text>Show Barcode</Text>
                                     </View>
                                 </View>
                             </View>
@@ -239,10 +285,9 @@ const RedeemDetails = ({ route, navigation }) => {
                                         backgroundColor: "#021D43",
                                         color: "white",
                                         textAlign: "center",
-                                        padding: 10,
+                                        padding: 8,
                                         borderRadius: 25,
-                                        fontWeight: "bold",
-                                        fontSize: 15,
+                                        fontSize: 12,
                                         width: 250,
                                     }}
                                 >
@@ -260,7 +305,7 @@ const RedeemDetails = ({ route, navigation }) => {
 
 const styles = StyleSheet.create({
     card: {
-        marginVertical: 10,
+        marginVertical: 20,
         borderWidth: 1,
         borderRadius: 11,
         borderColor: "#C3C3C3",
@@ -298,7 +343,7 @@ const styles = StyleSheet.create({
     buttonRedeem: {
         backgroundColor: "#021D43",
         color: "white",
-        padding: 10,
+        padding: 8,
         borderRadius: 25,
         position: "absolute",
         bottom: 0,

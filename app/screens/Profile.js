@@ -15,7 +15,6 @@ const Profile = ({ navigation }) => {
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
 
-
     // mengambil informasi koneksi internet
     useEffect(() => {
         const unsubscribe = NetInfo.addEventListener(state => {
@@ -43,7 +42,8 @@ const Profile = ({ navigation }) => {
     };
 
     useEffect(() => {
-        fetchData();
+        const intervalId = setInterval(fetchData, 1000);
+        return () => clearInterval(intervalId);
     }, []);
 
 
@@ -60,9 +60,10 @@ const Profile = ({ navigation }) => {
     const handleLogout = async () => {
         try {
             await AsyncStorage.removeItem('idMember');
-            navigation.replace('SignIn');
         } catch (error) {
             console.error('Failed to log out', error);
+        } finally {
+            navigation.replace('SignIn');
         }
     };
 
@@ -87,7 +88,7 @@ const Profile = ({ navigation }) => {
                         <Pressable
                             onPress={() => navigation.navigate('Notification')}
                         >
-                            <FontAwesome6 name='bell' color={'#fff'} size={20} style={{ justifyContent: 'flex-end', alignSelf: 'center' }} />
+                            <FontAwesome6 name='bell' color={'#fff'} size={20} style={{ justifyContent: 'flex-end', alignSelf: 'center', marginHorizontal: 10 }} />
                         </Pressable>
                     </View>
                     <View style={styles.head}>
@@ -95,7 +96,7 @@ const Profile = ({ navigation }) => {
                             <Text
                                 style={{
                                     color: "white",
-                                    fontSize: 20,
+                                    fontSize: 16,
                                     fontWeight: "bold",
                                     marginBottom: 5,
                                 }}
@@ -103,7 +104,7 @@ const Profile = ({ navigation }) => {
                                 {data.namaMember}
                             </Text>
                             <Pressable onPress={() => copyToClipboard(data.idMember)}>
-                                <Text style={{ color: "white" }}>{data.idMember}</Text>
+                                <Text style={{ color: "white", fontSize: 12 }}>{data.idMember}</Text>
                             </Pressable>
                         </View>
                         <Pressable
@@ -113,8 +114,8 @@ const Profile = ({ navigation }) => {
                             }}
                         >
                             <View style={{ flexDirection: "row", alignItems: "center" }}>
-                                <Text style={{ color: "white", marginEnd: 5 }}>Edit</Text>
-                                <FontAwesome6 name='edit' size={18} color={"#fff"} />
+                                <Text style={{ color: "white", marginEnd: 5, fontSize: 12 }}>Edit</Text>
+                                <FontAwesome6 name='edit' size={16} color={"#fff"} />
                             </View>
                         </Pressable>
                     </View>
@@ -133,12 +134,12 @@ const Profile = ({ navigation }) => {
                         >
                             <View style={styles.list}>
                                 <View style={{ alignItems: "center", flexDirection: "row" }}>
-                                    <Ionicons name="document-text-outline" size={24} color={'#1d1d1d'} />
-                                    <Text style={{ fontSize: 15, marginStart: 10 }}>
+                                    <Ionicons name="document-text-outline" size={20} color={'#1d1d1d'} />
+                                    <Text style={{ fontSize: 14, marginStart: 10 }}>
                                         Riwayat Transaksi
                                     </Text>
                                 </View>
-                                <MaterialIcons name='keyboard-arrow-right' size={25} color={"#1d1d1d"} />
+                                <MaterialIcons name='keyboard-arrow-right' size={20} color={"#1d1d1d"} />
                             </View>
                         </Pressable>
                         {/* riwayat transaksi */}
@@ -150,12 +151,12 @@ const Profile = ({ navigation }) => {
                         >
                             <View style={styles.list}>
                                 <View style={{ alignItems: "center", flexDirection: "row" }}>
-                                    <Ionicons name="information-circle-outline" size={24} color="black" />
-                                    <Text style={{ fontSize: 15, marginStart: 10 }}>
+                                    <Ionicons name="information-circle-outline" size={20} color="black" />
+                                    <Text style={{ fontSize: 14, marginStart: 10 }}>
                                         Tentang Kami
                                     </Text>
                                 </View>
-                                <MaterialIcons name='keyboard-arrow-right' size={25} color={"#1d1d1d"} />
+                                <MaterialIcons name='keyboard-arrow-right' size={20} color={"#1d1d1d"} />
                             </View>
                         </Pressable>
                         {/* tentang kami */}
@@ -167,10 +168,10 @@ const Profile = ({ navigation }) => {
                         >
                             <View style={styles.list}>
                                 <View style={{ alignItems: "center", flexDirection: "row" }}>
-                                    <Ionicons name="help-circle-outline" size={24} color="black" />
-                                    <Text style={{ fontSize: 15, marginStart: 10 }}>Bantuan</Text>
+                                    <Ionicons name="help-circle-outline" size={20} color="black" />
+                                    <Text style={{ fontSize: 14, marginStart: 10 }}>Bantuan</Text>
                                 </View>
-                                <MaterialIcons name='keyboard-arrow-right' size={25} color={"#1d1d1d"} />
+                                <MaterialIcons name='keyboard-arrow-right' size={20} color={"#1d1d1d"} />
                             </View>
                         </Pressable>
                         {/* bantuan */}
@@ -178,10 +179,10 @@ const Profile = ({ navigation }) => {
                         <Pressable onPress={handleLogout}>
                             <View style={styles.list}>
                                 <View style={{ alignItems: "center", flexDirection: "row" }}>
-                                    <Ionicons name="log-out-outline" size={24} color="black" />
-                                    <Text style={{ fontSize: 15, marginStart: 10 }}>Logout</Text>
+                                    <Ionicons name="log-out-outline" size={20} color="black" />
+                                    <Text style={{ fontSize: 14, marginStart: 10 }}>Keluar</Text>
                                 </View>
-                                <MaterialIcons name='keyboard-arrow-right' size={25} color={"#1d1d1d"} />
+                                <MaterialIcons name='keyboard-arrow-right' size={20} color={"#1d1d1d"} />
                             </View>
                         </Pressable>
                         {/* bantuan */}
@@ -199,7 +200,7 @@ const Profile = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flexDirection: "row",
-        padding: 10,
+        padding: 13,
         justifyContent: "space-between",
         alignItems: "center",
         backgroundColor: "#021D43",
@@ -226,7 +227,7 @@ const styles = StyleSheet.create({
         marginVertical: 5,
         borderColor: "#C3C3C3",
         borderWidth: 1,
-        padding: 10,
+        padding: 14,
         borderRadius: 5,
     },
 });

@@ -8,22 +8,23 @@ import Barcode from '@kichiyaki/react-native-barcode-generator';
 import { Ionicons } from '@expo/vector-icons';
 import * as Brightness from 'expo-brightness';
 
-const Voucher = ({ route, navigation }) => {
+const Voucher = ({ navigation }) => {
     const [modalVisible, setModalVisible] = useState(false);
+    const [loadingModal, setLoadingModal] = useState(false); // State untuk animasi loading
     const originalBrightness = useRef(null);
     const [List, setList] = useState([]);
     const [data, setData] = useState({});
     const [dataCount, setDataCount] = useState(0);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
 
-
-    // fungsi untuk mengambil data voucher
+    // Fungsi untuk mengambil data voucher
     const fetchData = async () => {
         try {
             const idMember = await AsyncStorage.getItem('idMember');
             const response = await axios.get(`https://golangapi-j5iu.onrender.com/api/member/mobile/voucher?id_member=${idMember}`);
-            setList(response.data.voucherData);
-            setDataCount(response.data.voucherData.length);
+            const data = response.data.voucherData.filter((item) => item.statusPenggunaan === '0');
+            setList(data);
+            setDataCount(data.length);
         } catch (error) {
             console.log(error)
         } finally {
@@ -35,9 +36,7 @@ const Voucher = ({ route, navigation }) => {
         fetchData();
     }, []);
 
-
-
-    // fungsi untuk mengatur brightness
+    // Fungsi untuk mengatur brightness
     useEffect(() => {
         const adjustBrightness = async () => {
             if (modalVisible) {
@@ -61,27 +60,72 @@ const Voucher = ({ route, navigation }) => {
         adjustBrightness();
     }, [modalVisible]);
 
-
-
-    // fungsi untuk menampilkan detail voucher
+    // Fungsi untuk menampilkan detail voucher
     const fetchDataById = async (id) => {
         try {
+            setLoadingModal(true); // Tampilkan loading
             const idMember = await AsyncStorage.getItem('idMember');
-            const response = await axios.get(`https://golangapi-j5iu.onrender.com/api/member/mobile/voucher/detail?id_member=${idMember}&no_voucher=${id}`);
-            setData(response.data.voucherData);
+            const response = await axios.get(`https://golangapi-j5iu.onrender.com/api/member/mobile/voucher?id_member=${idMember}`);
+            const filteredData = response.data.voucherData.filter(item => item.noVoucher == id);
+            console.log(filteredData[0]);
+            setData(filteredData[0]);
+            setLoadingModal(false); // Sembunyikan loading
             setModalVisible(true);
         } catch (error) {
             console.log(error);
+            setLoadingModal(false); // Sembunyikan loading jika ada error
         }
     };
-
-
 
     const formatNumber = (num) => {
         return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
     };
 
-    if (loading) {
+    const formatDate = (dateString) => {
+        // Input validation
+        if (!dateString || typeof dateString !== "string") {
+            return "Invalid date";
+        }
+
+        let parts = dateString.split("/");
+        if (parts.length !== 3) {
+            return "Invalid date format. Please use dd/mm/yyyy";
+        }
+
+        let day = parseInt(parts[0], 10);
+        let month = parseInt(parts[1], 10);
+        let year = parseInt(parts[2], 10);
+
+        if (isNaN(day) || isNaN(month) || isNaN(year)) {
+            return "Invalid date components";
+        }
+
+        let dateObj = new Date(year, month - 1, day);
+
+        let monthNames = [
+            "Januari",
+            "Februari",
+            "Maret",
+            "April",
+            "Mei",
+            "Juni",
+            "Juli",
+            "Agustus",
+            "September",
+            "Oktober",
+            "November",
+            "Desember",
+        ];
+
+        let monthName = monthNames[dateObj.getMonth()];
+        let formattedYear = dateObj.getFullYear();
+
+        let formattedDate = `${day} ${monthName} ${formattedYear}`;
+
+        return formattedDate;
+    };
+
+    if (loading || loadingModal) {
         return (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
                 <ActivityIndicator size="large" color="#021D43" />
@@ -108,8 +152,8 @@ const Voucher = ({ route, navigation }) => {
                         navigation.navigate("Voucher");
                     }}
                 >
-                    <Text style={{ fontSize: 16, fontWeight: "bold" }}>{dataCount == "" ? 0 : dataCount}</Text>
-                    <Text>Voucher</Text>
+                    <Text style={{ fontSize: 14, fontWeight: "bold" }}>{dataCount == "" ? 0 : dataCount}</Text>
+                    <Text style={{ fontSize: 12, color: "#a1a1a1" }}>Voucher</Text>
                 </Pressable>
                 <Pressable
                     style={{ justifyContent: "center", alignItems: "center" }}
@@ -117,8 +161,8 @@ const Voucher = ({ route, navigation }) => {
                         navigation.navigate("RiwayatVoucher");
                     }}
                 >
-                    <Ionicons name="document-text-outline" size={24} color={'#1d1d1d'} />
-                    <Text>Riwayat</Text>
+                    <Ionicons name="document-text-outline" size={20} color={'#1d1d1d'} />
+                    <Text style={{ fontSize: 12, color: "#a1a1a1" }}>Riwayat</Text>
                 </Pressable>
             </View>
 
@@ -126,52 +170,56 @@ const Voucher = ({ route, navigation }) => {
                 showsVerticalScrollIndicator={false}
                 style={{ flex: 1 }}
             >
-                <FlatList
-                    showsVerticalScrollIndicator={false}
-                    data={List}
-                    keyExtractor={(item) => String(item.noVoucher)}
-                    renderItem={({ item }) => (
-                        <Pressable
-                            onPress={() => fetchDataById(item.noVoucher)}
-                        >
-                            <View style={styles.card}>
-                                <View style={styles.topCard}>
-                                    <Text style={{ color: "white", fontSize: 16 }}>Voucher</Text>
-                                </View>
-                                <View
-                                    style={{
-                                        flexDirection: "row",
-                                        justifyContent: "space-between",
-                                        alignItems: "center",
-                                    }}
-                                >
-                                    <View
-                                        style={{
-                                            // justifyContent: "center",
-                                            paddingLeft: 15,
-                                        }}
-                                    >
-                                        <Text style={{ fontSize: 25 }}>Rp. {formatNumber(item.nominal)}</Text>
-                                        <Text style={{ marginTop: 5 }}>Berlaku Sampai : <Text style={{ color: 'red', fontWeight: '700' }}>{item.tanggalExpired}</Text></Text>
+                {!List ? (
+                    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                        <Text>Tidak ada data</Text>
+                    </View>
+                ) : (
+                    <FlatList
+                        showsVerticalScrollIndicator={false}
+                        data={List}
+                        keyExtractor={(item) => String(item.noVoucher)}
+                        renderItem={({ item }) => (
+                            <Pressable
+                                onPress={() => fetchDataById(item.noVoucher)}
+                            >
+                                <View style={styles.card}>
+                                    <View style={styles.topCard}>
+                                        <Text style={{ color: "white", fontSize: 14 }}>Voucher</Text>
                                     </View>
                                     <View
                                         style={{
-                                            justifyContent: "center",
+                                            flexDirection: "row",
+                                            justifyContent: "space-between",
                                             alignItems: "center",
-                                            marginRight: 10,
-                                            marginVertical: 5,
                                         }}
                                     >
-                                        <Ionicons name="barcode-outline" size={50} color="black" />
-                                        <Text>Tampilkan Barcode</Text>
+                                        <View
+                                            style={{
+                                                padding: 15,
+                                            }}
+                                        >
+                                            <Text style={{ fontSize: 20 }}>Rp {formatNumber(item.nominal)}</Text>
+                                            <Text style={{ marginTop: 5, fontSize: 12 }}>Berlaku Sampai: <Text style={{ color: 'red', fontWeight: '700', fontSize: 12 }}>{formatDate(item.tanggalExpired)}</Text></Text>
+                                        </View>
+                                        <View
+                                            style={{
+                                                justifyContent: "center",
+                                                alignItems: "center",
+                                                marginRight: 10,
+                                                marginVertical: 5,
+                                            }}
+                                        >
+                                            <Ionicons name="barcode-outline" size={34} color="black" />
+                                            <Text style={{ fontSize: 12, color: "#a1a1a1" }}>Show Barcode</Text>
+                                        </View>
                                     </View>
                                 </View>
-                            </View>
-                        </Pressable>
-                    )}
-                />
+                            </Pressable>
+                        )}
+                    />
+                )}
             </View>
-
 
             {/* modals */}
             <Modal
@@ -184,69 +232,73 @@ const Voucher = ({ route, navigation }) => {
             >
                 <Pressable style={{ flex: 1, backgroundColor: "rgba(0, 0, 0, 0.5)" }} onPress={() => setModalVisible(!modalVisible)}>
                     <View style={styles.modalView}>
-                        <Pressable
-                            style={{ marginBottom: 5 }}
-                            onPress={() => setModalVisible(!modalVisible)}
-                        >
-                            <MaterialIcons name="close" color={'#1d1d1d'} size={24} style={{ alignSelf: "flex-end" }} />
-                            {/* <Text style={{ alignSelf: "flex-end" }}>Close</Text> */}
-                        </Pressable>
-                        <View
-                            style={{
-                                margin: 20,
-                                justifyContent: "center",
-                                alignItems: "center",
-                            }}
-                        >
-                            <View style={{ borderColor: "black", borderWidth: StyleSheet.hairlineWidth }}>
-                                <Barcode
-                                    format="CODE128"
-                                    value={data.noVoucher}
-                                    style={{ margin: 10 }}
+                        {loadingModal ? (
+                            <ActivityIndicator size="large" color="#021D43" />
+                        ) : (
+                            <>
+                                <Pressable
+                                    style={{ marginBottom: 5 }}
+                                    onPress={() => setModalVisible(!modalVisible)}
+                                >
+                                    <MaterialIcons name="close" color={'#1d1d1d'} size={24} style={{ alignSelf: "flex-end" }} />
+                                </Pressable>
+                                <View
+                                    style={{
+                                        margin: 20,
+                                        justifyContent: "center",
+                                        alignItems: "center",
+                                    }}
+                                >
+                                    <View>
+                                        <Barcode
+                                            format="CODE128"
+                                            value={data.noVoucher}
+                                            width={1.5}
+                                            height={80}
+                                        />
+                                    </View>
+                                </View>
+                                <View
+                                    style={{
+                                        borderBottomColor: "black",
+                                        borderBottomWidth: StyleSheet.hairlineWidth,
+                                        marginHorizontal: 20,
+                                        marginBottom: 20,
+                                    }}
                                 />
-                            </View>
-                            <Text style={{ marginVertical: 10, fontWeight: "bold" }}>
-                                Barcode scan
-                            </Text>
-                        </View>
-                        <View
-                            style={{
-                                borderBottomColor: "black",
-                                borderBottomWidth: StyleSheet.hairlineWidth,
-                                margin: 20,
-                            }}
-                        />
-                        <Text
-                            style={{ fontSize: 30, fontWeight: "bold", textAlign: "center" }}
-                        >
-                            {data.noVoucher}
-                        </Text>
-                        <Text
-                            style={{
-                                fontWeight: "bold",
-                                textAlign: "center",
-                                marginVertical: 5,
-                            }}
-                        >
-                            Voucher Code
-                        </Text>
-                        <Text
-                            style={{ textAlign: "center", marginVertical: 20, marginTop: 50 }}
-                        >
-                            Gunakan kode barcode untuk pembelian pada store atau voucher code
-                            untuk pembelian pada website
-                        </Text>
+                                <Text
+                                    style={{
+                                        textAlign: "center",
+                                        marginVertical: 5,
+                                        fontSize: 12,
+                                        color: "#a1a1a1",
+                                    }}
+                                >
+                                    Kode Voucher
+                                </Text>
+                                <Text
+                                    style={{ fontSize: 16, textAlign: "center" }}
+                                >
+                                    {data.noVoucher}
+                                </Text>
+                                <Text
+                                    style={{ textAlign: "center", marginVertical: 24, fontSize: 12 }}
+                                >
+                                    Gunakan kode barcode untuk pembelian pada store
+                                </Text>
+                            </>
+                        )}
                     </View>
                 </Pressable>
             </Modal>
             {/* modals */}
-        </View>
+        </View >
     );
 }
 
 const styles = StyleSheet.create({
     card: {
-        marginVertical: 5,
+        marginVertical: 8,
         borderWidth: 1,
         borderRadius: 11,
         borderColor: "#C3C3C3",
@@ -277,4 +329,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default Voucher
+export default Voucher;

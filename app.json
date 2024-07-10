@@ -11,11 +11,13 @@
       "bundleIdentifier": "com.kingofcoding.crmmembership"
     },
     "android": {
+      "useNextNotificationsApi": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.kingofcoding.crmmembership"
+      "package": "com.kingofcoding.crmmembership",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "favicon": "./assets/icon.png"

@@ -25,74 +25,39 @@ const ValidasiForm = ({ navigation }) => {
                 "Inputan tidak boleh kosong!",
                 ToastAndroid.SHORT
             );
+            setTimeout(() => {
+                setIsPressed(false);
+            }, 2000);
             return;
         }
 
         try {
+            // Menghasilkan angka acak 6 digit
+            const randomNumber = Math.floor(Math.random() * 900000) + 100000;
+
+            await AsyncStorage.setItem('otp', randomNumber.toString());
+
             // kirim permintaan HTTP dengan menyertakan data yang diterima
-            const response = await axios.post('https://golangapi-j5iu.onrender.com/api/member/mobile/dashboard/Verify', data, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
+            const response = await axios.post(
+                `https://golangapi-j5iu.onrender.com/api/member/mobile/dashboard/Verify?userAccount=${data.userAccount}`,
+                {
+                    randomNumber: randomNumber,
                 }
-            });
+            );
 
             // mengecek response code dari API
             if (response.data.responseCode == "2002500") {
-                // Menghasilkan angka acak 6 digit
-                const randomNumber = Math.floor(Math.random() * 900000) + 100000;
-
-                await AsyncStorage.setItem('otp', randomNumber.toString());
-
-                // kirim OTP melalui API Qiscus
-                const sendOTP = await axios.post('https://omnichannel.qiscus.com/whatsapp/v1/dmvzl-wfbfx3bo5bbzrj1/3384/messages/', {
-                    to: data.userAccount, // gunakan nomor telepon dari data
-                    type: "template",
-                    template: {
-                        namespace: "7a2ceabe_e950_4283_82ac_5909ac117bf6",
-                        name: "otpmember_1",
-                        language: {
-                            policy: "deterministic",
-                            code: "id"
-                        },
-                        components: [
-                            {
-                                type: "body",
-                                parameters: [
-                                    { type: "text", text: randomNumber.toString() }
-                                ]
-                            },
-                            {
-                                type: "button",
-                                sub_type: "url",
-                                index: 0,
-                                parameters: [
-                                    { type: "text", text: randomNumber.toString() }
-                                ]
-                            }
-                        ]
-                    }
-                }, {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Qiscus-App-Id': 'dmvzl-wfbfx3bo5bbzrj1',
-                        'Qiscus-Secret-Key': '27a6859bc8065575a3a135408e262e6e'
-                    }
-                });
-
                 // menyimpan idMember ke local storage
                 await AsyncStorage.setItem('idMember', response.data.loginData.idMember);
-
                 // alert dengan toast android
                 ToastAndroid.show(
                     "Validasi Berhasil!",
                     ToastAndroid.SHORT
                 );
-
                 // navigasi ke halaman Input OTP
                 navigation.replace("InputOTP", { nohandphone: data.userAccount });
             } else {
                 setIsPressed(false);
-                // alert dengan toast android
                 ToastAndroid.show(
                     "No Handphone Tidak Terdaftar!",
                     ToastAndroid.SHORT
@@ -135,7 +100,7 @@ const ValidasiForm = ({ navigation }) => {
                             value={data.userAccount}
                             keyboardType="numeric"
                             onChangeText={(text) => handleChange('userAccount', text)}
-                            placeholder="Masukkan No Handphone"
+                            placeholder="08123xxxxxx"
                         />
                     </View>
 
@@ -169,29 +134,31 @@ const styles = StyleSheet.create({
         height: 50,
     },
     image: {
-        marginVertical: 40,
+        marginTop: 40,
         width: 200,
         height: 200,
     },
     title: {
-        fontSize: 24,
+        fontSize: 20,
         textAlign: "center",
         marginVertical: 10,
-        fontWeight: "bold",
     },
     form: {
         marginHorizontal: 10,
         marginVertical: 15,
     },
     input: {
-        borderBottomWidth: 1, borderBottomColor: "#C3C3C3"
+        borderBottomWidth: 1,
+        borderBottomColor: "#C3C3C3",
+        marginTop: 10,
     },
     buttonValidasi: {
         backgroundColor: "#021D43",
         color: "white",
-        padding: 10,
+        padding: 8,
         borderRadius: 25,
         marginHorizontal: 80,
+        fontSize: 12,
     }
 });
 

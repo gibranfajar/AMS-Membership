@@ -32,7 +32,7 @@ const Validasi = ({ navigation }) => {
                     />
 
                     <Text style={styles.text}>
-                        Apakah anda sudah pernah mendaftar sebagai member?
+                        Apakah Anda sudah pernah terdaftar sebagai member?
                     </Text>
 
                     <Pressable onPress={() => { navigation.navigate("ValidasiForm") }} >
@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
         height: 300,
     },
     text: {
-        fontSize: 24,
+        fontSize: 20,
         textAlign: "center",
         paddingVertical: 5
     },
@@ -78,16 +78,18 @@ const styles = StyleSheet.create({
         backgroundColor: "#021D43",
         color: "white",
         paddingHorizontal: 80,
-        padding: 10,
+        padding: 8,
         borderRadius: 25,
         marginVertical: 15,
+        fontSize: 12,
     },
     noColorButton: {
         paddingHorizontal: 80,
-        padding: 10,
+        padding: 8,
         borderRadius: 25,
         borderColor: "#021D43",
         borderWidth: 1,
+        fontSize: 12,
     }
 });
 
